@@ -1,0 +1,11 @@
+.empty {
+  opacity: 1;
+}
+
+:global {
+  body {
+    font-family: monospace;
+    background-color: #333344;
+    color: white;
+  }
+}

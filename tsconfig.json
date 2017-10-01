@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"target": "es6",
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"noImplicitAny": true,
+		"outDir": "out",
+		"removeComments": true,
+		"jsx": "react"
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.tsx",
+		"./types/*.ts"
+	]
+}
