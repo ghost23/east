@@ -16,6 +16,7 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 import buildAppMenu from './app-menu';
+import { VIEW_MODES } from '../utils/constants';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -82,13 +83,18 @@ function importJavaScript(filePath: string): void {
 	mainWindow.send('request-file-import', filePath);
 }
 
+function changeView(viewMode: VIEW_MODES): void {
+	mainWindow.send('change-view-mode', viewMode);
+}
+
 ipcMain.on("show-error", function(event: any, title: string, content: string) {
 	electron.dialog.showErrorBox(title, content);
 });
 
 const menu = Menu.buildFromTemplate(
 	buildAppMenu({
-		importJavaScript
+		importJavaScript,
+		changeView
 	})
 );
 Menu.setApplicationMenu(menu);

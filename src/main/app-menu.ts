@@ -1,17 +1,18 @@
 /**
  * Created by mail on 08.12.2016.
  */
+import { VIEW_MODES } from '../utils/constants';
+
 const electron = require('electron');
 const app = electron.app;
 const dialog = electron.dialog;
 
 export type AppMenuCallbacks = {
-	importJavaScript: Function
+	importJavaScript: Function,
+	changeView: Function
 };
 
 export default function buildAppMenu(callbacks: AppMenuCallbacks): any {
-
-	//TODO: Build menu item to select, which edit view to use
 
 	const template: any = [
 		{
@@ -28,6 +29,17 @@ export default function buildAppMenu(callbacks: AppMenuCallbacks): any {
 						}, function (files: string[]) {
 							callbacks.importJavaScript(files[0]); // We only allow a single file, so [0] it is.
 						})
+					}
+				}
+			]
+		},
+		{
+			label: "Views",
+			submenu: [
+				{
+					label: "Textual View",
+					click() {
+						callbacks.changeView(VIEW_MODES.TEXTUAL_VIEW)
 					}
 				}
 			]

@@ -10,10 +10,12 @@ import ReactDOM = require('react-dom');
 import { combineReducers, createStore, Store } from 'redux';
 import { Provider } from 'react-redux';
 import { importJavaScriptFile } from '../actions/ast-import';
-import { programModel, EastStore} from '../reducers/reducers';
-import TextualViewController from '../ast-views/textual/TextualViewController';
+import { programModel, viewMode, EastStore} from '../reducers/reducers';
 
-import * as styles from './edit-pane.scss';
+import * as styles from './index.scss';
+import EditCanvasController from './edit-canvas';
+import { VIEW_MODES } from '../utils/constants';
+import { changeEditView } from '../actions/change-view';
 
 declare global { // To make Redux devtools call work
 	interface Window { __REDUX_DEVTOOLS_EXTENSION__: Function; }
@@ -21,19 +23,22 @@ declare global { // To make Redux devtools call work
 
 const test = styles.empty;
 
-const eastReducers = combineReducers<EastStore>({programModel});
+const eastReducers = combineReducers<EastStore>({programModel, viewMode});
 let store: Store<EastStore> = createStore<EastStore>(eastReducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 ReactDOM.render(
 	<Provider store={store}>
-		<TextualViewController type="Program" uid="1" />
+		<EditCanvasController/>
 	</Provider>,
 	document.getElementById('root')
 );
 
 
 ipcRenderer.on('request-file-import', (channel: string, filePath: string) => {
-	console.log("file to be imported:", filePath);
 	store.dispatch(importJavaScriptFile(filePath));
+});
+
+ipcRenderer.on('change-view-mode', (channel: string, viewMode: VIEW_MODES) => {
+	store.dispatch(changeEditView(viewMode));
 });
 

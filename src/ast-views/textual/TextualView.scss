@@ -7,4 +7,8 @@
 .primitiveEntry {
 	border: none;
 	padding: 0 4px;
+
+	&[type=checkbox] {
+		vertical-align: sub;
+	}
 }

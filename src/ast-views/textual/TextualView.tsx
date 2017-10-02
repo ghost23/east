@@ -1,15 +1,7 @@
 import React = require('react');
-import * as ESTree from 'estree';
 import { isArray } from 'lodash';
 import * as styles from './TextualView.scss';
-import TextualViewController from './TextualViewController';
-
-export interface TextualViewProps {
-	astNode: ESTree.Node,
-	type: string,
-	uid: string,
-	onPropChange: (propName: string, index: number, newValue: any) => void
-}
+import TextualViewController, { TextualViewProps } from './TextualViewController';
 
 export interface TextualViewState {
 }

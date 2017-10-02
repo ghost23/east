@@ -86,9 +86,9 @@ const electronConfigs = [
 		config,
 		{
 			target: 'electron-renderer',
-			entry: { ['edit-pane']: './src/edit-pane/edit-pane.tsx' },
+			entry: { ['editor-view']: './src/editor-view/index.tsx' },
 			plugins: config.plugins.concat([new HtmlWebpackPlugin({
-				template: './src/edit-pane/index.html'
+				template: './src/editor-view/index.html'
 			})])
 		})
 ];
