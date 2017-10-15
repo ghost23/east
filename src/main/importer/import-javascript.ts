@@ -7,6 +7,7 @@ import * as ESTree from 'estree';
 import { readFileSync } from 'fs';
 import { walk, Visitor } from '../../utils/estree-walker';
 import { clone } from 'lodash';
+import { NodeReference } from '../../utils/constants';
 const uid = require('uid');
 
 const testForJavaScriptEnding = /\.js$/;
@@ -50,6 +51,7 @@ function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSy
 		const typeMap = syntaxMap[nodeType];
 
 		const newNode:ESTree.Node = clone(node);
+		newNode.__east_DescendantNodes = [];
 
 		if(mappedParent) {
 			newNode.__east_parentNode = { type: mappedParent.type, uid: mappedParent.__east_uid };
@@ -61,13 +63,28 @@ function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSy
 		newNode.__east_uid = newUId;
 		typeMap[newUId] = newNode;
 		if(mappedParent) {
-			if (index !== null && index !== undefined) {
+			if(index !== null && index !== undefined) {
 				(mappedParent[propertyName] as Array<any>)[index] = {type: newNode.type, uid: newUId};
 			} else {
 				mappedParent[propertyName] = {type: newNode.type, uid: newUId};
 			}
 		}
 		return newNode;
+	}, (
+		mappedNode: ESTree.Node | null,
+		node: ESTree.Node,
+		mappedParent: ESTree.Node | null,
+		parent: ESTree.Node,
+		propertyName: keyof ESTree.Node,
+		index: number
+	) => {
+
+		if(mappedParent) {
+			const referenceList: Array<NodeReference> =
+				mappedNode.__east_DescendantNodes.concat({type: node.type, uid: mappedNode.__east_uid});
+
+			mappedParent.__east_DescendantNodes = mappedParent.__east_DescendantNodes.concat(referenceList);
+		}
 	});
 
 	return syntaxMap;

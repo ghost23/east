@@ -12,6 +12,7 @@ export interface NodeReference {
 declare module 'estree' {
 	interface BaseNode {
 		__east_parentNode?: NodeReference;
+		__east_DescendantNodes?: Array<NodeReference>;
 		__east_uid?: string;
 	}
 }
