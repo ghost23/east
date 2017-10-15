@@ -1,6 +1,6 @@
 {
   "name": "east",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "east (edit AST) aims to be a code editor, that works on an AST instead of textual code. The first AST will be an ECMAScript compatible AST.",
   "main": "./out/static/js/main.js",
   "scripts": {

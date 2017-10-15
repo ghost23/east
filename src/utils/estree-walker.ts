@@ -23,7 +23,7 @@ const context = {
 };
 
 function isNode(value: any): boolean {
-	return isObject(value) && 'type' in value; //TODO: Zusätzlich sicherstellen, dass der Knoten keine ReferenceNode ist
+	return isObject(value) && 'type' in value && !('uid' in value);
 }
 
 function visit(
@@ -47,6 +47,9 @@ function visit(
 
 	Object.keys(node).forEach(
 		(key: keyof ESTree.Node) => {
+
+			if(key.startsWith('__east_')) return; // No parsing of our own internal properties
+
 			const value: any = node[key];
 
 			if(isArray(value)) {

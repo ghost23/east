@@ -5,6 +5,13 @@ import { Partial } from 'lodash';
 const electron = require('electron');
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 
+electron.crashReporter.start({
+	productName: "east",
+	companyName: "Sven Busse",
+	submitURL: 'http://localhost',
+	uploadToServer: false
+});
+
 // Module to control application life.
 const app = electron.app;
 const Menu = electron.Menu;

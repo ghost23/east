@@ -22,7 +22,7 @@ export interface TextualViewProps {
 }
 
 const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string}) => ({
-	astNode: selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid),
+	astNode: selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid)
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>, ownProps: {uid: string, type:string}) => ({

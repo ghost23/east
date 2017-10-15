@@ -14,6 +14,10 @@ export default class TextualView extends React.Component<TextualViewProps, Textu
 		this.handlePropChange = this.handlePropChange.bind(this);
 	}
 
+	shouldComponentUpdate(nextProps: TextualViewProps): boolean {
+		return this.props.type !== nextProps.type || this.props.uid !== nextProps.uid;
+	}
+
 	renderInput(prop: any, propName: string, index?: number): JSX.Element {
 
 		let inputType: string;
@@ -76,13 +80,18 @@ export default class TextualView extends React.Component<TextualViewProps, Textu
 
 	public render(): JSX.Element {
 
+		if(!this.props.astNode) return null;
+
 		return (
 			<div className={`default ${this.props.astNode.type} ${styles.block}`}>{this.props.astNode.type}
 				<ul>
 					{
-						Object.keys(this.props.astNode).map((current: string, index: number): JSX.Element => {
-							return this.renderProp((this.props.astNode as any)[current], current, index);
-						})
+						Object
+							.keys(this.props.astNode)
+							.filter(key => !key.startsWith('__east_'))
+							.map((current: string, index: number): JSX.Element => {
+								return this.renderProp((this.props.astNode as any)[current], current, index);
+							})
 					}
 				</ul>
 			</div>

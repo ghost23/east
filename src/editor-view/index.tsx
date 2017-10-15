@@ -5,6 +5,13 @@
 import * as electron from 'electron';
 const ipcRenderer = electron.ipcRenderer;
 
+electron.crashReporter.start({
+	productName: "east",
+	companyName: "Sven Busse",
+	submitURL: 'http://localhost',
+	uploadToServer: false
+});
+
 import React = require('react');
 import ReactDOM = require('react-dom');
 import { combineReducers, createStore, Store } from 'redux';

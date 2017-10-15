@@ -12,12 +12,13 @@ import { clone } from 'lodash';
 export interface ProgramModel {
 	astMap: { [key:string]: { [key:string]: ESTree.Node } },
 	importedFiles: string[],
+	entryFile: string,
 	importError: Error
 }
 
 const DEFAULT_AST: { [key:string]: { [key:string]: ESTree.Node } } = {};
 DEFAULT_AST["Program"] = {};
-DEFAULT_AST["Program"]["1"] = {
+DEFAULT_AST["Program"]["/"] = {
 	body: [],
 	sourceType: "module",
 	type: "Program",
@@ -27,6 +28,7 @@ DEFAULT_AST["Program"]["1"] = {
 const DEFAULT_PROGRAM_MODEL: ProgramModel = {
 	astMap: DEFAULT_AST,
 	importedFiles: [],
+	entryFile: "/",
 	importError: null
 };
 
@@ -39,12 +41,14 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 				programModel = {
 					astMap,
 					importedFiles: state.importedFiles.concat((action as ImportJavaScriptfileAction).filePath),
+					entryFile: (action as ImportJavaScriptfileAction).filePath,
 					importError: null
 				};
 			} catch(e) {
 				programModel = {
 					astMap: state.astMap,
 					importedFiles: state.importedFiles,
+					entryFile: state.entryFile,
 					importError: { name: e.name, message: e.message, stack: e.stack }
 				};
 			}
@@ -66,6 +70,7 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 			return {
 				astMap: newASTMap,
 				importedFiles: state.importedFiles,
+				entryFile: state.entryFile,
 				importError: state.importError
 			}
 		}

@@ -1,6 +1,7 @@
 /**
  * Created by mail on 08.12.2016.
  */
+import * as path from 'path';
 import { parse } from 'esprima';
 import * as ESTree from 'estree';
 import { readFileSync } from 'fs';
@@ -31,18 +32,16 @@ function parseJavaScriptFile(fileContent: string, module: boolean = true): ESTre
 	return parse(fileContent, { sourceType: module ? "module" : "script" });
 }
 
-export function importJavaScript(filePath: string): { [key:string]: { [key:string]: ESTree.Node } } {
+function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }): { [key:string]: { [key:string]: ESTree.Node } } {
 
-	const ast = parseJavaScriptFile(loadFile(filePath), true);
-
-	const syntaxMap: { [key:string]: { [key:string]: ESTree.Node } } = {};
+	const syntaxMap: { [key:string]: { [key:string]: ESTree.Node } } = priorSyntaxMap || {};
 
 	walk(ast, (
-		mappedNode: any | null,
+		mappedNode: ESTree.Node | null,
 		node: ESTree.Node,
-		mappedParent: any | null,
+		mappedParent: ESTree.Node | null,
 		parent: ESTree.Node,
-		propertyName: string,
+		propertyName: keyof ESTree.Node,
 		index: number
 	) => {
 
@@ -51,12 +50,22 @@ export function importJavaScript(filePath: string): { [key:string]: { [key:strin
 		const typeMap = syntaxMap[nodeType];
 
 		const newNode:ESTree.Node = clone(node);
-		const newUId = nodeType === "Program" ? "1" : uid(10);
-		typeMap[newUId] = newNode;
-		if(index !== null && index !== undefined) {
-			if(mappedParent) mappedParent[propertyName][index] = { type: newNode.type, uid: newUId };
+
+		if(mappedParent) {
+			newNode.__east_parentNode = { type: mappedParent.type, uid: mappedParent.__east_uid };
 		} else {
-			if(mappedParent) mappedParent[propertyName] = { type: newNode.type, uid: newUId };
+			newNode.__east_parentNode = null;
+		}
+
+		const newUId = nodeType === "Program" ? filePath : uid(10);
+		newNode.__east_uid = newUId;
+		typeMap[newUId] = newNode;
+		if(mappedParent) {
+			if (index !== null && index !== undefined) {
+				(mappedParent[propertyName] as Array<any>)[index] = {type: newNode.type, uid: newUId};
+			} else {
+				mappedParent[propertyName] = {type: newNode.type, uid: newUId};
+			}
 		}
 		return newNode;
 	});
@@ -64,17 +73,37 @@ export function importJavaScript(filePath: string): { [key:string]: { [key:strin
 	return syntaxMap;
 }
 
+export function importJavaScript(entryFile: string): { [key:string]: { [key:string]: ESTree.Node } } {
 
-// Pseudocode für Tree Normalization
-/*
-Für jeden node, in den wir eintreten:
+	const listOfFilesToBeParsed: Array<string> = [];
+	listOfFilesToBeParsed.push(entryFile);
 
-- Lese seinen Typ aus dem property 'type'
-- Schaue in der syntaxMap nach, ob wir für diesen Typ schon eine Map haben. Wenn nein,
-  erstelle eine neue Map.
-- Klone den node, das wird der mappedNode sein.
-- Erzeuge eine UId für diesen mappedNode, die innerhalb der type Map in der syntaxMap eindeutig ist.
-- Füge den mappedNode in der Map unter der UId hinzu.
-- Nimm den mappedParent und ersetze dort die Referenz anhand des propertyName auf den aktuellen mappedNode mit einer
-  ReferenceNode, die die Uid und den type dieses mappedNode enthält.
- */
+	const setOfFilesAlreadyParsed: Set<string> = new Set();
+
+	let file: string;
+	let filePath: string;
+	let ast: ESTree.Program;
+	let syntaxMap: { [key:string]: { [key:string]: ESTree.Node } };
+
+	while(listOfFilesToBeParsed.length > 0) {
+
+		file = listOfFilesToBeParsed.pop();
+		setOfFilesAlreadyParsed.add(file);
+		console.log('now examining:', file);
+		filePath = path.dirname(file);
+		ast = parseJavaScriptFile(loadFile(file), true);
+		syntaxMap = createSyntaxMapsFromTree(ast, file, syntaxMap);
+
+		const importDeclarations: { [key:string]: ESTree.ImportDeclaration } = syntaxMap['ImportDeclaration'] as { [key:string]: ESTree.ImportDeclaration };
+		if(importDeclarations) {
+			Object.keys(importDeclarations).forEach((id: string) => {
+				const importDeclaration: ESTree.ImportDeclaration = importDeclarations[id];
+				const source: ESTree.Literal = syntaxMap['Literal'][(importDeclaration.source as any).uid] as ESTree.Literal;
+				const absolutePath: string = path.join(filePath, source.value.toString()) + '.js';
+				if(!setOfFilesAlreadyParsed.has(absolutePath)) listOfFilesToBeParsed.push(absolutePath);
+			});
+		}
+	}
+
+	return syntaxMap;
+}

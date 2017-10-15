@@ -60,7 +60,7 @@ export default function buildAppMenu(callbacks: AppMenuCallbacks): any {
 			submenu: [
 				{
 					label: 'Learn More',
-					click() { electron.shell.openExternal('http://electron.atom.io') }
+					click() { electron.shell.openExternal('https://github.com/ghost23/east') }
 				}
 			]
 		}

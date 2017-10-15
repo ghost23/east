@@ -10,9 +10,11 @@ import * as React from 'react';
 import TextualViewController from '../ast-views/textual/TextualViewController';
 import { ASTViewProps } from '../ast-views/ast-view';
 import { VIEW_MODES } from '../utils/constants';
+import { selectEntryFile } from '../selectors/select-ast-node';
 
 const mapStateToProps = (state: EastStore) => ({
 	viewMode: selectCurrentViewMode(state),
+	entryFile: selectEntryFile(state)
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>) => ({
@@ -25,6 +27,7 @@ interface EmptyState {}
 
 interface EditCanvasProps {
 	viewMode: VIEW_MODES,
+	entryFile: string,
 	onViewModeChange: (viewMode: VIEW_MODES) => void
 }
 
@@ -37,7 +40,7 @@ class EditCanvas extends React.Component<EditCanvasProps, EmptyState> {
 	public render(): JSX.Element {
 		return React.createElement<ASTViewProps>(
 			EditCanvas.viewModeMap.get(this.props.viewMode),
-			{ type: "Program", uid: "1" }
+			{ type: "Program", uid: this.props.entryFile }
 		);
 	}
 }
