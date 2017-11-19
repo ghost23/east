@@ -19,7 +19,7 @@ const config = {
 	},
 
 	node: {
-		__dirname: false
+		__dirname: true
 	},
 
 	module: {

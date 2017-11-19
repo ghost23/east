@@ -2,7 +2,7 @@
  * Created by mail on 08.12.2016.
  */
 import * as path from 'path';
-import { parse } from 'esprima';
+import { parseModule, parseScript } from 'esprima';
 import * as ESTree from 'estree';
 import { readFileSync } from 'fs';
 import { walk, Visitor } from '../../utils/estree-walker';
@@ -30,7 +30,7 @@ function loadFile(filePath: string): string {
 
 function parseJavaScriptFile(fileContent: string, module: boolean = true): ESTree.Program {
 
-	return parse(fileContent, { sourceType: module ? "module" : "script" });
+	return module ? parseModule(fileContent) : parseScript(fileContent);
 }
 
 function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }): { [key:string]: { [key:string]: ESTree.Node } } {
