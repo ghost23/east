@@ -22,8 +22,12 @@ const context = {
 	shouldSkip: false
 };
 
-function isNode(value: any): boolean {
+export function isNode(value: any): boolean {
 	return isObject(value) && 'type' in value && !('uid' in value);
+}
+
+export function isReferenceNode(value: any): boolean {
+	return isObject(value) && 'type' in value && 'uid' in value;
 }
 
 function visit(

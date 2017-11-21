@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.0.2",
     "@types/esprima": "^4.0.1",
+    "@types/jest": "^21.1.5",
     "@types/lodash": "^4.14.74",
     "@types/prop-types": "^15.5.2",
     "@types/react": "^16.0.25",
@@ -45,6 +46,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.30.1",
+    "jest": "^21.2.1",
     "node-sass": "^4.7.1",
     "postcss": "^6.0.11",
     "postcss-loader": "^2.0.8",
@@ -54,11 +56,25 @@
     "rimraf": "^2.6.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
+    "ts-jest": "^21.1.4",
     "ts-loader": "^3.1.1",
     "typings-for-css-modules-loader": "^1.5.0",
     "url-loader": "^0.5.9",
     "watchr": "^3.0.1",
     "webpack": "^3.8.1",
     "webpack-stats-plugin": "^0.1.5"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
   }
 }
