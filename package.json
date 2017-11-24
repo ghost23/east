@@ -4,7 +4,7 @@
   "description": "east (edit AST) aims to be a code editor, that works on an AST instead of textual code. The first AST will be an ECMAScript compatible AST.",
   "main": "./out/static/js/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "rimraf ./out & webpack --config ./build-scripts/webpack.config.js",
     "start": "electron ."
   },
@@ -66,7 +66,7 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.tsx?$": "node_modules/ts-jest/preprocessor.js"
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
