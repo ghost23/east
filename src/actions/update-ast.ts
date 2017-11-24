@@ -12,7 +12,7 @@ export interface UpdateASTNode extends Action {
 	newValue: any;
 }
 
-export function updateASTNode(newValue: any, type: string, uid: string, propName: keyof ESTree.Node, propIndex?: number): UpdateASTNode {
+	export function updateASTNode(newValue: any, type: string, uid: string, propName: keyof ESTree.Node, propIndex?: number): UpdateASTNode {
 	return {
 		type: UPDATE_AST_NODE,
 		nodeType: type,

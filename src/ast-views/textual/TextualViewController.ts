@@ -27,7 +27,7 @@ const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string})
 
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>, ownProps: {uid: string, type:string}) => ({
 	onPropChange: (propName: string, index: number, newValue: any) => {
-		dispatch(updateASTNode(newValue, ownProps.type, ownProps.uid, propName, index));
+		dispatch(updateASTNode(newValue, ownProps.type, ownProps.uid, propName as keyof ESTree.Node, index));
 	}
 });
 
