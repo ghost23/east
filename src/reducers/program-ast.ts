@@ -3,7 +3,7 @@
  */
 
 import { IMPORT_JAVASCRIPT_FILE, ImportJavaScriptfileAction } from '../actions/ast-import';
-import { UPDATE_AST_NODE, UpdateASTNode } from '../actions/update-ast';
+import { UPDATE_AST_NODE_PROPERTY, UpdateASTNodeProperty } from '../actions/edit-ast';
 import { Action } from 'redux';
 import { importJavaScript } from '../main/importer/import-javascript';
 import * as ESTree from 'estree';
@@ -72,8 +72,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 			}
 			return programModel;
 		}
-		case UPDATE_AST_NODE: {
-			const typeAction = action as UpdateASTNode;
+		case UPDATE_AST_NODE_PROPERTY: {
+			const typeAction = action as UpdateASTNodeProperty;
 			const newASTMap = clone(state.astMap);
 			const newASTSubMap = clone(newASTMap[typeAction.nodeType]);
 			const newNode = clone(newASTSubMap[typeAction.uid]);

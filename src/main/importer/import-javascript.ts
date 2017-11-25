@@ -43,7 +43,7 @@ function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSy
 		mappedParent: ESTree.Node | null,
 		parent: ESTree.Node,
 		propertyName: keyof ESTree.Node,
-		index: number
+		index: number | string
 	) => {
 
 		const nodeType: string = node.type;
@@ -64,7 +64,11 @@ function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSy
 		typeMap[newUId] = newNode;
 		if(mappedParent) {
 			if(index !== null && index !== undefined) {
-				(mappedParent[propertyName] as Array<any>)[index] = {type: newNode.type, uid: newUId};
+				if(Array.isArray(mappedParent[propertyName]) && typeof index === "number") {
+					(mappedParent[propertyName] as Array<any>)[index] = {type: newNode.type, uid: newUId};
+				} else {
+					(mappedParent[propertyName] as {[index:string]:any})[index] = {type: newNode.type, uid: newUId};
+				}
 			} else {
 				mappedParent[propertyName] = {type: newNode.type, uid: newUId};
 			}

@@ -11,7 +11,7 @@ import * as ESTree from 'estree';
 import TextualView from './TextualView';
 import { EastStore } from '../../reducers/reducers';
 import { selectASTNodeByTypeAndId } from '../../selectors/select-ast-node';
-import { updateASTNode } from '../../actions/update-ast';
+import { updateASTNode } from '../../actions/edit-ast';
 import IdentifierView from './components/IdentifierView';
 
 export interface TextualViewProps {
