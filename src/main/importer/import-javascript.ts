@@ -33,7 +33,7 @@ function parseJavaScriptFile(fileContent: string, module: boolean = true): ESTre
 	return module ? parseModule(fileContent) : parseScript(fileContent);
 }
 
-function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }): { [key:string]: { [key:string]: ESTree.Node } } {
+export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }): { [key:string]: { [key:string]: ESTree.Node } } {
 
 	const syntaxMap: { [key:string]: { [key:string]: ESTree.Node } } = priorSyntaxMap || {};
 
@@ -60,7 +60,7 @@ function createSyntaxMapsFromTree(ast: ESTree.Program, filePath: string, priorSy
 		}
 
 		const newUId = nodeType === "Program" ? filePath : uid(10);
-		newNode.__east_uid = newUId;
+		newNode.__east_uid = newNode.__east_uid || newUId;
 		typeMap[newUId] = newNode;
 		if(mappedParent) {
 			if(index !== null && index !== undefined) {

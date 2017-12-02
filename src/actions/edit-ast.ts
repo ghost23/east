@@ -19,14 +19,10 @@ export interface UpdateASTNodeProperty extends Action, ASTLocation {
 export interface InsertASTSubtree extends Action {
 	type: "INSERT_AST_SUBTREE";
 	insertionPoint: ASTLocation;
-	nodeType: string;
-	uid: string;
-	propName: string;
-	propIndex?: number;
-	newValue: any;
+	subTree: ESTree.Node
 }
 
-export function updateASTNode(
+export function updateASTNodeProperty(
 		newValue: any,
 		type: string,
 		uid: string,
@@ -40,5 +36,11 @@ export function updateASTNode(
 		propName,
 		propIndex,
 		newValue
+	};
+}
+
+export function insertASTSubtree(insertionPoint: ASTLocation, subTree: ESTree.Node): InsertASTSubtree {
+	return {
+		type: INSERT_AST_SUBTREE, insertionPoint, subTree
 	};
 }

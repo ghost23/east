@@ -3,15 +3,17 @@
  */
 
 import { IMPORT_JAVASCRIPT_FILE, ImportJavaScriptfileAction } from '../actions/ast-import';
-import { UPDATE_AST_NODE_PROPERTY, UpdateASTNodeProperty } from '../actions/edit-ast';
+import {
+	INSERT_AST_SUBTREE, InsertASTSubtree, UPDATE_AST_NODE_PROPERTY,
+	UpdateASTNodeProperty
+} from '../actions/edit-ast';
 import { Action } from 'redux';
-import { importJavaScript } from '../main/importer/import-javascript';
+import { createSyntaxMapsFromTree, importJavaScript } from '../main/importer/import-javascript';
 import * as ESTree from 'estree';
 import { clone } from 'lodash';
 const uid = require('uid');
 import { isNode, isReferenceNode } from '../utils/estree-walker';
 import { NodeReference } from '../utils/constants';
-
 
 
 export type ASTMap = {
@@ -122,6 +124,44 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 				entryFile: state.entryFile,
 				importError: state.importError
 			}
+		}
+		case INSERT_AST_SUBTREE: {
+
+			const typeAction = action as InsertASTSubtree;
+			const newASTMap = createSyntaxMapsFromTree(typeAction.subTree, '', state.astMap);
+			const newASTSubMap = clone(newASTMap[typeAction.insertionPoint.nodeType]);
+			const newNode = clone(newASTSubMap[typeAction.insertionPoint.uid]);
+			const hasPropIndex = typeAction.insertionPoint.propIndex !== null && typeAction.insertionPoint.propIndex !== undefined;
+
+			const newUid = uid(10);
+			const newPropNode = typeAction.subTree as ESTree.Node;
+			newPropNode.__east_uid = newUid;
+			newPropNode.__east_DescendantNodes = [];
+			newPropNode.__east_parentNode = { type: typeAction.insertionPoint.nodeType, uid: typeAction.insertionPoint.uid };
+			const newProbNodeRef: NodeReference = { type: newPropNode.type, uid: newUid };
+			const currentProbNodeRef = hasPropIndex ?
+				((newNode as any)[typeAction.insertionPoint.propName] as Array<any>)[typeAction.insertionPoint.propIndex] as NodeReference :
+				(newNode as any)[typeAction.insertionPoint.propName] as NodeReference;
+			if(isReferenceNode(currentProbNodeRef)) {
+				const currentProbNode = newASTMap[currentProbNodeRef.type][currentProbNodeRef.uid] as ESTree.Node;
+				currentProbNode.__east_parentNode = null;
+				modifyParentsDescendantsLists(descendants => descendants.filter(
+					nodeReference => nodeReference.type !== currentProbNode.type && nodeReference.uid !== currentProbNode.__east_uid
+				), newNode, newASTMap);
+			}
+			if(Array.isArray((newNode as any)[typeAction.insertionPoint.propName])) {
+				if(hasPropIndex) {
+					((newNode as any)[typeAction.insertionPoint.propName] as Array<any>)[typeAction.insertionPoint.propIndex] = newProbNodeRef;
+				}else {
+					((newNode as any)[typeAction.insertionPoint.propName] as Array<any>).push(newProbNodeRef);
+				}
+			} else {
+				(newNode as any)[typeAction.insertionPoint.propName] = newProbNodeRef;
+			}
+			modifyParentsDescendantsLists(descendants => {
+				descendants.push(newProbNodeRef);
+				return descendants;
+			}, newNode, newASTMap);
 		}
 		default: {
 			return state;
