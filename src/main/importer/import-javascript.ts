@@ -33,7 +33,7 @@ function parseJavaScriptFile(fileContent: string, module: boolean = true): ESTre
 	return module ? parseModule(fileContent) : parseScript(fileContent);
 }
 
-export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }): { [key:string]: { [key:string]: ESTree.Node } } {
+export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, priorSyntaxMap?: { [key:string]: { [key:string]: ESTree.Node } }, cloneMode: boolean = false): { [key:string]: { [key:string]: ESTree.Node } } {
 
 	const syntaxMap: { [key:string]: { [key:string]: ESTree.Node } } = priorSyntaxMap || {};
 
@@ -48,6 +48,7 @@ export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, pri
 
 		const nodeType: string = node.type;
 		if(!syntaxMap[nodeType]) syntaxMap[nodeType] = {};
+		else if(cloneMode) syntaxMap[nodeType] = clone(syntaxMap[nodeType]);
 		const typeMap = syntaxMap[nodeType];
 
 		const newNode:ESTree.Node = clone(node);
@@ -59,8 +60,8 @@ export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, pri
 			newNode.__east_parentNode = null;
 		}
 
-		const newUId = nodeType === "Program" ? filePath : uid(10);
-		newNode.__east_uid = newNode.__east_uid || newUId;
+		const newUId = nodeType === "Program" ? filePath : newNode.__east_uid || uid(10);
+		newNode.__east_uid = newUId;
 		typeMap[newUId] = newNode;
 		if(mappedParent) {
 			if(index !== null && index !== undefined) {
