@@ -5,6 +5,7 @@ import {
     UpdateASTNodeProperty
 } from '../../actions/edit-ast';
 import { Literal, SimpleLiteral } from 'estree';
+import {NodeReference} from "../../utils/constants";
 
 describe('program ast reducer', () => {
 
@@ -61,11 +62,11 @@ describe('program ast reducer', () => {
                         __east_parentNode: null,
                         __east_DescendantNodes: [
 							{ type: 'VariableDeclaration', uid: '0002'},
-							{ type: 'VariableDeclaration', uid: '0012'},
-							{ type: 'VariableDeclaration', uid: '0003'},
-							{ type: 'VariableDeclaration', uid: '0004'},
-							{ type: 'VariableDeclaration', uid: '0005'},
-							{ type: 'VariableDeclaration', uid: '0006'}
+							{ type: 'VariableDeclarator', uid: '0012'},
+							{ type: 'Identifier', uid: '0003'},
+							{ type: 'BinaryExpression', uid: '0004'},
+							{ type: 'Literal', uid: '0005'},
+							{ type: 'Literal', uid: '0006'}
 						]
 					}
 				},
@@ -157,62 +158,17 @@ describe('program ast reducer', () => {
 				newValue: 4
 			};
 
-			const expectedProgramModel: ProgramModel = {
-				importError: null,
-				importedFiles: ['some/path/to/file.js'],
-				entryFile: 'some/path/to/file.js',
-				astMap: {
-					'Program': {
-						'0001': {
-							type: 'Program',
-							body: [{ type: 'VariableDeclaration', uid: '0002' }],
-							sourceType: 'script'
-						}
-					},
-					'VariableDeclaration': {
-						'0002': {
-							type: 'VariableDeclaration',
-							declarations: [{ type: 'VariableDeclarator', uid: '0012' }],
-							kind: 'var'
-						}
-					},
-					'VariableDeclarator': {
-						'0012': {
-							type: 'VariableDeclarator',
-							id: { type: 'Identifier', uid: '0003' },
-							init: { type: 'BinaryExpression', uid: '0004' }
-						}
-					},
-					'Identifier': {
-						'0003': {
-							type: 'Identifier',
-							name: 'answer'
-						}
-					},
-					'BinaryExpression': {
-						'0004': {
-							type: 'BinaryExpression',
-							operator: '*',
-							left: { type: 'Literal', uid: '0005' },
-							right: { type: 'Literal', uid: '0006' }
-						}
-					},
-					'Literal': {
-						'0005': {
-							type: 'Literal',
-							value: 4,
-						},
-						'0006': {
-							type: 'Literal',
-							value: 7,
-						}
-					}
-				} as any
-			};
+
 
 			const newProgramModel = programModel(initialProgramModel, updateAction);
 
-			expect(newProgramModel).toEqual(expectedProgramModel);
+			expect(newProgramModel.astMap['Literal']['0005']).toEqual({
+                type: 'Literal',
+                value: 4,
+                __east_uid: '0005',
+                __east_parentNode: { type: 'BinaryExpression', uid: '0004'},
+                __east_DescendantNodes: []
+            });
 		});
 
 		it('where the update is a node an thus results in an error', () => {
@@ -278,72 +234,26 @@ describe('program ast reducer', () => {
                 }
 			};
 
-			const expectedProgramModel: ProgramModel = {
-				importError: null,
-				importedFiles: ['some/path/to/file.js'],
-				entryFile: 'some/path/to/file.js',
-				astMap: {
-					'Program': {
-						'0001': {
-							type: 'Program',
-							body: [{ type: 'VariableDeclaration', uid: '0002' }],
-							sourceType: 'script'
-						}
-					},
-					'VariableDeclaration': {
-						'0002': {
-							type: 'VariableDeclaration',
-							declarations: [{ type: 'VariableDeclarator', uid: '0012' }],
-							kind: 'var'
-						}
-					},
-					'VariableDeclarator': {
-						'0012': {
-							type: 'VariableDeclarator',
-							id: { type: 'Identifier', uid: '0003' },
-							init: { type: 'BinaryExpression', uid: '0007' }
-						}
-					},
-					'Identifier': {
-						'0003': {
-							type: 'Identifier',
-							name: 'answer'
-						}
-					},
-					'BinaryExpression': {
-						'0004': {
-							type: 'BinaryExpression',
-							operator: '*',
-							left: { type: 'Literal', uid: '0005' },
-							right: { type: 'Literal', uid: '0006' }
-						},
-						'0007': {
-							type: 'BinaryExpression',
-							operator: '+',
-							left: { type: 'BinaryExpression', uid: '0004' },
-							right: { type: 'Literal', uid: '0008' }
-						},
-					},
-					'Literal': {
-						'0005': {
-							type: 'Literal',
-							value: 6,
-						},
-						'0006': {
-							type: 'Literal',
-							value: 7,
-						},
-						'0008': {
-							type: 'Literal',
-							value: 8,
-						}
-					}
-				} as any
-			};
-
 			const newProgramModel = programModel(initialProgramModel, updateAction);
 
-			expect(newProgramModel).toEqual(expectedProgramModel);
+			const binaryExpressionMap = newProgramModel.astMap['BinaryExpression'];
+			expect(Object.keys(binaryExpressionMap)).toHaveLength(2);
+
+			const programNode: ESTree.Node = newProgramModel.astMap['Program']['0001'];
+			expect(programNode.__east_DescendantNodes).toHaveLength(8);
+
+            const literalMap = newProgramModel.astMap['Literal'];
+            expect(Object.keys(literalMap)).toHaveLength(3);
+
+            const insertionPointNode: ESTree.Node = newProgramModel.astMap['VariableDeclarator']['0012'];
+            expect(((insertionPointNode as ESTree.VariableDeclarator).init as any).uid).not.toBe('0004');
+            expect((insertionPointNode as ESTree.VariableDeclarator).__east_DescendantNodes).not.toEqual([
+                { type: 'Identifier', uid: '0003'},
+                { type: 'BinaryExpression', uid: '0004'},
+                { type: 'Literal', uid: '0005'},
+                { type: 'Literal', uid: '0006'}
+            ]);
+            expect((insertionPointNode as ESTree.VariableDeclarator).__east_DescendantNodes).toHaveLength(6);
 		})
 	});
 });

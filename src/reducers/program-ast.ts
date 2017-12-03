@@ -48,6 +48,10 @@ const DEFAULT_PROGRAM_MODEL: ProgramModel = {
 function modifyParentsDescendantsLists(modifier: (uidList: NodeReference[]) => NodeReference[], node: ESTree.Node, astMap: ASTMap): void {
     let parent: ESTree.Node = node;
     while (parent !== null && parent !== undefined) {
+        const newASTSubMap = clone(astMap[parent.type]);
+        parent = clone(parent);
+        newASTSubMap[parent.__east_uid] = parent;
+        astMap[parent.type] = newASTSubMap;
         parent.__east_DescendantNodes = modifier(parent.__east_DescendantNodes);
         const nextParentNodeRef = parent.__east_parentNode;
         parent = nextParentNodeRef ? astMap[nextParentNodeRef.type][nextParentNodeRef.uid] as ESTree.Node : null;
@@ -116,13 +120,13 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 
             // Now let's integrate our little subtree into our big astMap
             const newASTMap = createSyntaxMapsFromTree(newSubTreeRootNode, '', state.astMap, true);
-            console.log('node type', newSubTreeRootNode.type, 'uid:', newSubTreeRootNodeUid);
-            console.log('newASTMap:\n', JSON.stringify(newASTMap));
             newSubTreeRootNode = newASTMap[newSubTreeRootNode.type][newSubTreeRootNodeUid]; // newSubTreeRootNode had probably been cloned in createSyntaxMapsFromTree()
 
             // As a preparation for the things to come, let's first clone the things, that will be updated. You know, redux.
             const newASTSubMap = clone(newASTMap[typeAction.insertionPoint.nodeType]);
-            const newInsertionPointNode = clone(newASTSubMap[typeAction.insertionPoint.uid]);
+            let newInsertionPointNode = clone(newASTSubMap[typeAction.insertionPoint.uid]);
+            newASTSubMap[typeAction.insertionPoint.uid] = newInsertionPointNode;
+            newASTMap[typeAction.insertionPoint.nodeType] = newASTSubMap;
 
             // OK, so in a nutshell, we have to remove any existing subtree, that might sit at the insertion point
             // and then we add the new subtree in there.
@@ -152,14 +156,18 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
                 // of that old subtree from its parents descendants lists, then remove the actual nodes from the astMap
                 const oldInsertionPointPropNodeAndDescendants = oldInsertionPointPropNode.__east_DescendantNodes.concat(oldInsertionPointPropNodeRef);
 
-                modifyParentsDescendantsLists(descendants => descendants.filter(
-                    candidateRef => oldInsertionPointPropNodeAndDescendants.findIndex(
-                            descRefForRemoval =>
-                                candidateRef.type === descRefForRemoval.type && candidateRef.uid === descRefForRemoval.uid
-                        ) < 0 // If the descendantForRemoval is NOT found (index == -1), then keep the candidate
-                    ),
+                modifyParentsDescendantsLists(
+                    descendants =>
+                        descendants.filter(
+                        candidateRef => oldInsertionPointPropNodeAndDescendants.findIndex(
+                                descRefForRemoval =>
+                                    candidateRef.type === descRefForRemoval.type && candidateRef.uid === descRefForRemoval.uid
+                            ) < 0 // If the descendantForRemoval is NOT found (index == -1), then keep the candidate
+                        ),
                     newInsertionPointNode, newASTMap
                 );
+
+                newInsertionPointNode = newASTMap[typeAction.insertionPoint.nodeType][typeAction.insertionPoint.uid]; // refetch after cloning
 
                 // So the parents->child connection have been removed. Now let's finish this step by removing
                 // the actual nodes from the astMap
