@@ -111,7 +111,7 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
 
             const typeAction = action as InsertASTSubtree;
 
-            // First, let's prepare the root node of the subtree. We need to give it a uid, so that we can
+            // First, let's prepare the root node of the new subtree. We need to give it a uid, so that we can
             // find it again, after we put it in the astMap.
             const newSubTreeRootNodeUid = uid(10);
             let newSubTreeRootNode = typeAction.subTree;
@@ -123,10 +123,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             newSubTreeRootNode = newASTMap[newSubTreeRootNode.type][newSubTreeRootNodeUid]; // newSubTreeRootNode had probably been cloned in createSyntaxMapsFromTree()
 
             // As a preparation for the things to come, let's first clone the things, that will be updated. You know, redux.
-            const newASTSubMap = clone(newASTMap[typeAction.insertionPoint.nodeType]);
-            let newInsertionPointNode = clone(newASTSubMap[typeAction.insertionPoint.uid]);
-            newASTSubMap[typeAction.insertionPoint.uid] = newInsertionPointNode;
-            newASTMap[typeAction.insertionPoint.nodeType] = newASTSubMap;
+            const aSTSubMap = newASTMap[typeAction.insertionPoint.nodeType];
+            let newInsertionPointNode = aSTSubMap[typeAction.insertionPoint.uid];
 
             // OK, so in a nutshell, we have to remove any existing subtree, that might sit at the insertion point
             // and then we add the new subtree in there.
