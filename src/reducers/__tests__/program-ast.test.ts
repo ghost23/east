@@ -2,7 +2,7 @@ import { programModel, ProgramModel, ASTMap } from '../program-ast';
 import * as ESTree from 'estree';
 import {
     ADD_AST_SUBTREE,
-    AddASTSubtree,
+    AddASTSubtree, REMOVE_AST_SUBTREE, RemoveASTSubtree,
     SET_AST_SUBTREE, SetASTSubtree, UPDATE_AST_NODE_PROPERTY,
     UpdateASTNodeProperty
 } from '../../actions/edit-ast';
@@ -408,7 +408,7 @@ describe('program ast reducer', () => {
 
             const expressionStatementMap = newProgramModel.astMap['ExpressionStatement'];
             expect(Object.keys(expressionStatementMap)).toHaveLength(1);
-        })
+        });
 
         it('where the insert is happening at a list property (in the middle)', () => {
 
@@ -530,4 +530,146 @@ describe('program ast reducer', () => {
             expect(Object.keys(expressionStatementMap)).toHaveLength(3);
         });
 	});
+
+    describe('updates an existing ASTMap on a REMOVE_AST_SUBTREE action', () => {
+
+        it('where the remove is of a single property', () => {
+
+            const updateAction: RemoveASTSubtree = {
+                type: REMOVE_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'VariableDeclarator',
+                    uid: '0012',
+                    propName: 'init'
+                }
+            };
+
+            const newProgramModel = programModel(initialProgramModel, updateAction);
+
+            const binaryExpressionMap = newProgramModel.astMap['BinaryExpression'];
+            if(binaryExpressionMap) {
+                expect(Object.keys(binaryExpressionMap).length).toBeLessThanOrEqual(0);
+            }
+
+            const programNode: ESTree.Node = newProgramModel.astMap['Program']['0001'];
+            expect(programNode.__east_DescendantNodes).toHaveLength(3);
+
+            const literalMap = newProgramModel.astMap['Literal'];
+            if(literalMap) {
+                expect(Object.keys(literalMap).length).toBeLessThanOrEqual(0);
+            }
+
+            const variableDeclaratorMap = newProgramModel.astMap['VariableDeclarator'];
+            const variableDeclaratorNode: ESTree.VariableDeclarator = variableDeclaratorMap['0012'] as any;
+            expect(variableDeclaratorNode.init).toBeNull();
+            expect(variableDeclaratorNode.__east_DescendantNodes).toHaveLength(1);
+        });
+
+        it('where the remove is of an item from a list property (in the middle)', () => {
+
+            initialProgramModel = {
+                importError: null,
+                importedFiles: ['some/path/to/file.js'],
+                entryFile: 'some/path/to/file.js',
+                astMap: {
+                    'Program': {
+                        '0001': {
+                            type: 'Program',
+                            body: [
+                                { type: 'ExpressionStatement', uid: '0002' },
+                                { type: 'ExpressionStatement', uid: '0003' },
+                                { type: 'ExpressionStatement', uid: '0004'}
+                            ],
+                            sourceType: 'script',
+                            __east_uid: '0001',
+                            __east_parentNode: null,
+                            __east_DescendantNodes: [
+                                { type: 'ExpressionStatement', uid: '0002'},
+                                { type: 'ExpressionStatement', uid: '0003'},
+                                { type: 'ExpressionStatement', uid: '0004'},
+                                { type: 'Identifier', uid: '0005'},
+                                { type: 'Identifier', uid: '0006'},
+                                { type: 'Identifier', uid: '0007'}
+                            ]
+                        }
+                    },
+                    'ExpressionStatement': {
+                        '0002': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0005' },
+                            __east_uid: '0002',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: [{ type: 'Identifier', uid: '0005' }]
+                        },
+                        '0003': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0006' },
+                            __east_uid: '0003',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: [{ type: 'Identifier', uid: '0006' }]
+                        },
+                        '0004': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0007' },
+                            __east_uid: '0004',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: [{ type: 'Identifier', uid: '0007' }]
+                        }
+                    },
+                    'Identifier': {
+                        '0005': {
+                            type: 'Identifier',
+                            name: 'check',
+                            __east_uid: '0005',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0002'},
+                            __east_DescendantNodes: []
+                        },
+                        '0006': {
+                            type: 'Identifier',
+                            name: 'chuck',
+                            __east_uid: '0006',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0003'},
+                            __east_DescendantNodes: []
+                        },
+                        '0007': {
+                            type: 'Identifier',
+                            name: 'debug',
+                            __east_uid: '0007',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0004'},
+                            __east_DescendantNodes: []
+                        }
+                    }
+                }
+            } as any;
+
+            const updateAction: RemoveASTSubtree = {
+                type: REMOVE_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'Program',
+                    uid: '0001',
+                    propName: 'body',
+                    propIndex: 1
+                }
+            };
+
+            const newProgramModel = programModel(initialProgramModel, updateAction);
+
+            const identifierMap = newProgramModel.astMap['Identifier'];
+            expect(Object.keys(identifierMap)).toHaveLength(2);
+
+            const programNode: ESTree.Program = newProgramModel.astMap['Program']['0001'] as ESTree.Program;
+            expect(programNode.__east_DescendantNodes).toHaveLength(4);
+
+            expect (programNode.body).toHaveLength(2);
+
+            const body1NodeReference = (programNode.body as any)[1] as NodeReference;
+
+            const body1Node: ESTree.ExpressionStatement = newProgramModel.astMap[body1NodeReference.type][body1NodeReference.uid] as ESTree.ExpressionStatement;
+
+            expect((body1Node.expression as any).uid).toBe('0007');
+
+            const expressionStatementMap = newProgramModel.astMap['ExpressionStatement'];
+            expect(Object.keys(expressionStatementMap)).toHaveLength(2);
+        });
+    });
 });
