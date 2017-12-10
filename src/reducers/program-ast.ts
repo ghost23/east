@@ -200,12 +200,12 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             const newNode = clone(newASTSubMap[typeAction.uid]);
             const hasPropIndex = typeAction.propIndex !== null && typeAction.propIndex !== undefined;
 
-            if (isNode(typeAction.newValue)) {
+            if (isNode(typeAction.newValue)) { //TODO: What if the existing prop is a node? what if the existing prop is an array of nodes?
                 throw new Error('UPDATE_AST_NODE_PROPERTY newValue must not be a Node');
             } else {
-                if (hasPropIndex) {
+                if (hasPropIndex) { //TODO: what if the prop is not an array?
                     ((newNode as any)[typeAction.propName] as Array<any>)[typeAction.propIndex] = typeAction.newValue;
-                } else {
+                } else { //TODO: what if the prop is an array?
                     (newNode as any)[typeAction.propName] = typeAction.newValue;
                 }
             }
