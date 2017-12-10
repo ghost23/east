@@ -2,7 +2,9 @@
 import { Action } from 'redux';
 import * as ESTree from 'estree';
 export const UPDATE_AST_NODE_PROPERTY = "UPDATE_AST_NODE_PROPERTY";
-export const INSERT_AST_SUBTREE = "INSERT_AST_SUBTREE";
+export const SET_AST_SUBTREE = "SET_AST_SUBTREE";
+export const ADD_AST_SUBTREE = "ADD_AST_SUBTREE";
+export const REMOVE_AST_SUBTREE = "REMOVE_AST_SUBTREE";
 
 export interface ASTLocation {
 	nodeType: string;
@@ -16,10 +18,21 @@ export interface UpdateASTNodeProperty extends Action, ASTLocation {
 	newValue: any;
 }
 
-export interface InsertASTSubtree extends Action {
-	type: "INSERT_AST_SUBTREE";
+export interface SetASTSubtree extends Action {
+	type: "SET_AST_SUBTREE";
 	insertionPoint: ASTLocation;
 	subTree: ESTree.Node
+}
+
+export interface AddASTSubtree extends Action {
+    type: "ADD_AST_SUBTREE";
+    insertionPoint: ASTLocation;
+    subTree: ESTree.Node
+}
+
+export interface RemoveASTSubtree extends Action {
+    type: "REMOVE_AST_SUBTREE";
+    insertionPoint: ASTLocation;
 }
 
 export function updateASTNodeProperty(
@@ -39,8 +52,20 @@ export function updateASTNodeProperty(
 	};
 }
 
-export function insertASTSubtree(insertionPoint: ASTLocation, subTree: ESTree.Node): InsertASTSubtree {
+export function setASTSubtree(insertionPoint: ASTLocation, subTree: ESTree.Node): SetASTSubtree {
 	return {
-		type: INSERT_AST_SUBTREE, insertionPoint, subTree
+		type: SET_AST_SUBTREE, insertionPoint, subTree
 	};
+}
+
+export function addASTSubtree(insertionPoint: ASTLocation, subTree: ESTree.Node): AddASTSubtree {
+    return {
+        type: ADD_AST_SUBTREE, insertionPoint, subTree
+    };
+}
+
+export function removeASTSubtree(insertionPoint: ASTLocation): RemoveASTSubtree {
+    return {
+        type: REMOVE_AST_SUBTREE, insertionPoint
+    };
 }

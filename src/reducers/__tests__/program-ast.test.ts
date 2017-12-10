@@ -1,7 +1,9 @@
 import { programModel, ProgramModel, ASTMap } from '../program-ast';
 import * as ESTree from 'estree';
 import {
-    INSERT_AST_SUBTREE, InsertASTSubtree, UPDATE_AST_NODE_PROPERTY,
+    ADD_AST_SUBTREE,
+    AddASTSubtree,
+    SET_AST_SUBTREE, SetASTSubtree, UPDATE_AST_NODE_PROPERTY,
     UpdateASTNodeProperty
 } from '../../actions/edit-ast';
 import { Literal, SimpleLiteral } from 'estree';
@@ -198,18 +200,18 @@ describe('program ast reducer', () => {
 		});
 	});
 
-	describe('updates an existing ASTMap on an INSERT_AST_SUBTREE action', () => {
+	describe('updates an existing ASTMap on a SET_AST_SUBTREE action', () => {
 
-		it('where the insert is happening within the tree (non-leaf)', () => {
+        it('where the insert is happening at a single property', () => {
 
-			const updateAction: InsertASTSubtree = {
-				type: INSERT_AST_SUBTREE,
-				insertionPoint: {
-					nodeType: 'VariableDeclarator',
-					uid: '0012',
-					propName: 'init'
-				},
-				subTree: {
+            const updateAction: SetASTSubtree = {
+                type: SET_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'VariableDeclarator',
+                    uid: '0012',
+                    propName: 'init'
+                },
+                subTree: {
                     type: "BinaryExpression",
                     operator: "+",
                     left: {
@@ -232,15 +234,15 @@ describe('program ast reducer', () => {
                         raw: "8"
                     }
                 }
-			};
+            };
 
-			const newProgramModel = programModel(initialProgramModel, updateAction);
+            const newProgramModel = programModel(initialProgramModel, updateAction);
 
-			const binaryExpressionMap = newProgramModel.astMap['BinaryExpression'];
-			expect(Object.keys(binaryExpressionMap)).toHaveLength(2);
+            const binaryExpressionMap = newProgramModel.astMap['BinaryExpression'];
+            expect(Object.keys(binaryExpressionMap)).toHaveLength(2);
 
-			const programNode: ESTree.Node = newProgramModel.astMap['Program']['0001'];
-			expect(programNode.__east_DescendantNodes).toHaveLength(8);
+            const programNode: ESTree.Node = newProgramModel.astMap['Program']['0001'];
+            expect(programNode.__east_DescendantNodes).toHaveLength(8);
 
             const literalMap = newProgramModel.astMap['Literal'];
             expect(Object.keys(literalMap)).toHaveLength(3);
@@ -248,12 +250,284 @@ describe('program ast reducer', () => {
             const insertionPointNode: ESTree.Node = newProgramModel.astMap['VariableDeclarator']['0012'];
             expect(((insertionPointNode as ESTree.VariableDeclarator).init as any).uid).not.toBe('0004');
             expect((insertionPointNode as ESTree.VariableDeclarator).__east_DescendantNodes).not.toEqual([
-                { type: 'Identifier', uid: '0003'},
-                { type: 'BinaryExpression', uid: '0004'},
-                { type: 'Literal', uid: '0005'},
-                { type: 'Literal', uid: '0006'}
+                {type: 'Identifier', uid: '0003'},
+                {type: 'BinaryExpression', uid: '0004'},
+                {type: 'Literal', uid: '0005'},
+                {type: 'Literal', uid: '0006'}
             ]);
             expect((insertionPointNode as ESTree.VariableDeclarator).__east_DescendantNodes).toHaveLength(6);
-		})
+        });
+
+        it('where the insert is happening at a list property (in the middle)', () => {
+
+            /*
+            {
+                "type": "Program",
+                "body": [
+                    {
+                        "type": "ExpressionStatement",
+                        "expression": {
+                            "type": "Identifier",
+                            "name": "check"
+                        }
+                    },
+                    {
+                        "type": "ExpressionStatement",
+                        "expression": {
+                            "type": "Identifier",
+                            "name": "chuck"
+                        }
+                    }
+                ],
+                "sourceType": "script"
+            }
+            */
+
+            initialProgramModel = {
+                importError: null,
+                importedFiles: ['some/path/to/file.js'],
+                entryFile: 'some/path/to/file.js',
+                astMap: {
+                    'Program': {
+                        '0001': {
+                            type: 'Program',
+                            body: [{ type: 'ExpressionStatement', uid: '0002' }, { type: 'ExpressionStatement', uid: '0003' }],
+                            sourceType: 'script',
+                            __east_uid: '0001',
+                            __east_parentNode: null,
+                            __east_DescendantNodes: [
+                                { type: 'ExpressionStatement', uid: '0002'},
+                                { type: 'ExpressionStatement', uid: '0003'},
+                                { type: 'Identifier', uid: '0004'},
+                                { type: 'Identifier', uid: '0005'}
+                            ]
+                        }
+                    },
+                    'ExpressionStatement': {
+                        '0002': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0004' },
+                            __east_uid: '0002',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: [{ type: 'Identifier', uid: '0004' }]
+                        },
+                        '0003': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0005' },
+                            __east_uid: '0003',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: [{ type: 'Identifier', uid: '0005' }]
+                        }
+                    },
+                    'Identifier': {
+                        '0004': {
+                            type: 'Identifier',
+                            name: 'check',
+                            __east_uid: '0004',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0002'},
+                            __east_DescendantNodes: []
+                        },
+                        '0005': {
+                            type: 'Identifier',
+                            name: 'chuck',
+                            __east_uid: '0005',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0003'},
+                            __east_DescendantNodes: []
+                        }
+                    }
+                }
+            } as any;
+
+            const updateAction: SetASTSubtree = {
+                type: SET_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'Program',
+                    uid: '0001',
+                    propName: 'body',
+                    propIndex: 1
+                },
+                subTree: {
+                    type: "ExpressionStatement",
+                    expression: {
+                        type: "Identifier",
+                        name: "debug"
+                    }
+                }
+            };
+
+            const newProgramModel = programModel(initialProgramModel, updateAction);
+
+            const identifierMap = newProgramModel.astMap['Identifier'];
+            expect(Object.keys(identifierMap)).toHaveLength(2);
+
+            const programNode: ESTree.Program = newProgramModel.astMap['Program']['0001'] as ESTree.Program;
+            expect(programNode.__east_DescendantNodes).toHaveLength(4);
+
+            expect (programNode.body).toHaveLength(2);
+
+            const body1NodeReference = (programNode.body as any)[1] as NodeReference;
+
+            const body1Node: ESTree.ExpressionStatement = newProgramModel.astMap[body1NodeReference.type][body1NodeReference.uid] as ESTree.ExpressionStatement;
+
+            expect((body1Node.expression as any).uid).not.toBe('0003');
+
+            const expressionStatementMap = newProgramModel.astMap['ExpressionStatement'];
+            expect(Object.keys(expressionStatementMap)).toHaveLength(2);
+        });
+    });
+
+    describe('updates an existing ASTMap on an ADD_AST_SUBTREE action', () => {
+
+        it('where the insert is happening at a list property (amending at the end)', () => {
+
+            const updateAction: AddASTSubtree = {
+                type: ADD_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'Program',
+                    uid: '0001',
+                    propName: 'body'
+                },
+                subTree: {
+                    type: "ExpressionStatement",
+                    expression: {
+                        type: "Identifier",
+                        name: "debug"
+                    }
+                }
+            };
+
+            const newProgramModel = programModel(initialProgramModel, updateAction);
+
+            const identifierMap = newProgramModel.astMap['Identifier'];
+            expect(Object.keys(identifierMap)).toHaveLength(2);
+
+            const programNode: ESTree.Program = newProgramModel.astMap['Program']['0001'] as ESTree.Program;
+            expect(programNode.__east_DescendantNodes).toHaveLength(8);
+
+            expect (programNode.body).toHaveLength(2);
+
+            const expressionStatementMap = newProgramModel.astMap['ExpressionStatement'];
+            expect(Object.keys(expressionStatementMap)).toHaveLength(1);
+        })
+
+        it('where the insert is happening at a list property (in the middle)', () => {
+
+            /*
+                {
+                    "type": "Program",
+                    "body": [
+                        {
+                            "type": "ExpressionStatement",
+                            "expression": {
+                                "type": "Identifier",
+                                "name": "check"
+                            }
+                        },
+                        {
+                            "type": "ExpressionStatement",
+                            "expression": {
+                                "type": "Identifier",
+                                "name": "chuck"
+                            }
+                        }
+                    ],
+                    "sourceType": "script"
+                }
+                */
+
+            initialProgramModel = {
+                importError: null,
+                importedFiles: ['some/path/to/file.js'],
+                entryFile: 'some/path/to/file.js',
+                astMap: {
+                    'Program': {
+                        '0001': {
+                            type: 'Program',
+                            body: [{ type: 'ExpressionStatement', uid: '0002' }, { type: 'ExpressionStatement', uid: '0003' }],
+                            sourceType: 'script',
+                            __east_uid: '0001',
+                            __east_parentNode: null,
+                            __east_DescendantNodes: [
+                                { type: 'ExpressionStatement', uid: '0002'},
+                                { type: 'ExpressionStatement', uid: '0003'},
+                                { type: 'Identifier', uid: '0004'},
+                                { type: 'Identifier', uid: '0005'}
+                            ]
+                        }
+                    },
+                    'ExpressionStatement': {
+                        '0002': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0004' },
+                            __east_uid: '0003',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: []
+                        },
+                        '0003': {
+                            type: 'ExpressionStatement',
+                            expression: { type: 'Identifier', uid: '0005' },
+                            __east_uid: '0003',
+                            __east_parentNode: { type: 'Program', uid: '0001'},
+                            __east_DescendantNodes: []
+                        }
+                    },
+                    'Identifier': {
+                        '0004': {
+                            type: 'Identifier',
+                            name: 'check',
+                            __east_uid: '0004',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0002'},
+                            __east_DescendantNodes: []
+                        },
+                        '0005': {
+                            type: 'Identifier',
+                            name: 'chuck',
+                            __east_uid: '0005',
+                            __east_parentNode: { type: 'ExpressionStatement', uid: '0003'},
+                            __east_DescendantNodes: []
+                        }
+                    }
+                }
+            } as any;
+
+            const updateAction: AddASTSubtree = {
+                type: ADD_AST_SUBTREE,
+                insertionPoint: {
+                    nodeType: 'Program',
+                    uid: '0001',
+                    propName: 'body',
+                    propIndex: 1
+                },
+                subTree: {
+                    type: "ExpressionStatement",
+                    expression: {
+                        type: "Identifier",
+                        name: "debug"
+                    }
+                }
+            };
+
+            const newProgramModel = programModel(initialProgramModel, updateAction);
+
+            const identifierMap = newProgramModel.astMap['Identifier'];
+            expect(Object.keys(identifierMap)).toHaveLength(3);
+
+            const programNode: ESTree.Program = newProgramModel.astMap['Program']['0001'] as ESTree.Program;
+            expect(programNode.__east_DescendantNodes).toHaveLength(6);
+
+            expect (programNode.body).toHaveLength(3);
+
+            const body1NodeReference = (programNode.body as any)[1] as NodeReference;
+            const body2NodeReference = (programNode.body as any)[2] as NodeReference;
+
+            const body1Node: ESTree.ExpressionStatement = newProgramModel.astMap[body1NodeReference.type][body1NodeReference.uid] as ESTree.ExpressionStatement;
+            const body2Node: ESTree.ExpressionStatement = newProgramModel.astMap[body2NodeReference.type][body2NodeReference.uid] as ESTree.ExpressionStatement;
+
+            expect((body1Node.expression as any).uid).not.toBe('0005');
+            expect((body2Node.expression as any).uid).toBe('0005');
+
+            const expressionStatementMap = newProgramModel.astMap['ExpressionStatement'];
+            expect(Object.keys(expressionStatementMap)).toHaveLength(3);
+        });
 	});
 });
