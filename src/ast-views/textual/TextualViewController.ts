@@ -11,7 +11,7 @@ import * as ESTree from 'estree';
 import TextualView from './TextualView';
 import { EastStore } from '../../reducers/reducers';
 import { selectASTNodeByTypeAndId } from '../../selectors/select-ast-node';
-import { updateASTNode } from '../../actions/edit-ast';
+import { updateASTNodeProperty } from '../../actions/edit-ast';
 import IdentifierView from './components/IdentifierView';
 
 export interface TextualViewProps {
@@ -27,7 +27,7 @@ const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string})
 
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>, ownProps: {uid: string, type:string}) => ({
 	onPropChange: (propName: string, index: number, newValue: any) => {
-		dispatch(updateASTNode(newValue, ownProps.type, ownProps.uid, propName as keyof ESTree.Node, index));
+		dispatch(updateASTNodeProperty(newValue, ownProps.type, ownProps.uid, propName as keyof ESTree.Node, index));
 	}
 });
 
