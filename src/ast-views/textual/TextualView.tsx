@@ -6,15 +6,15 @@ import TextualViewController, { TextualViewProps } from './TextualViewController
 export interface TextualViewState {
 }
 
-export default class TextualView extends React.Component<TextualViewProps, TextualViewState> {
+export default class TextualView<T extends TextualViewProps = TextualViewProps> extends React.Component<T, TextualViewState> {
 
-	constructor(props: TextualViewProps) {
+	constructor(props: T) {
 		super(props);
 
 		this.handlePropChange = this.handlePropChange.bind(this);
 	}
 
-	shouldComponentUpdate(nextProps: TextualViewProps): boolean {
+	shouldComponentUpdate(nextProps: T): boolean {
 		return this.props.type !== nextProps.type || this.props.uid !== nextProps.uid;
 	}
 
@@ -31,20 +31,18 @@ export default class TextualView extends React.Component<TextualViewProps, Textu
 		const gotIndex = (index !== null && index !== undefined);
 
 		return (
-			<li key={propName + "_" + (gotIndex || "")}>
-				<label>
-					{(index !== null && index !== undefined) ? `[${index}]` : `${propName}`}:
-					<input
-						data-propname={propName}
-						data-propindex={gotIndex ? index : null}
-						type={inputType}
-						className={styles.primitiveEntry}
-						value={prop}
-						checked={inputType === 'checkbox' ? prop : null}
-						onChange={this.handlePropChange}
-					/>
-				</label>
-			</li>
+			<label>
+				{(index !== null && index !== undefined) ? `[${index}]` : `${propName}`}:
+				<input
+					data-propname={propName}
+					data-propindex={gotIndex ? index : null}
+					type={inputType}
+					className={styles.primitiveEntry}
+					value={prop}
+					checked={inputType === 'checkbox' ? prop : null}
+					onChange={this.handlePropChange}
+				/>
+			</label>
 		);
 	}
 
@@ -59,18 +57,16 @@ export default class TextualView extends React.Component<TextualViewProps, Textu
 
 	renderProp(prop: any, propName: string, index: number): JSX.Element {
 		if(prop !== null && prop !== undefined && typeof prop === 'object' && 'type' in prop && 'uid' in prop) {
-			return <li key={index}>{propName}: <TextualViewController type={prop.type} uid={prop.uid} /></li>;
+			return <span>{propName}: <TextualViewController type={prop.type} uid={prop.uid} /></span>;
 		} else if(isArray(prop)) {
 			const list = prop.map((element: any, c_index: number) => {
 				if(typeof element === 'object' && 'type' in element && 'uid' in element) {
 					return <li key={propName + "_" + c_index}>[{c_index}]: <TextualViewController type={element.type} uid={element.uid} /></li>;
 				} else if(prop !== null && prop !== undefined && prop.toString) {
-					return this.renderInput(element, propName, c_index);
+					return <li key={propName + "_" + c_index}>{ this.renderInput(element, propName, c_index) }</li>;
 				}
 			});
-			return (<li key={index}>
-				{propName}: <ul key={index}>{list}</ul>
-			</li>);
+			return (<span>{propName}: <ul key={index}>{list}</ul></span>);
 		} else if(prop !== null && prop !== undefined && propName !== "type" && prop.toString) {
 			return this.renderInput(prop, propName);
 		} else {
@@ -92,6 +88,8 @@ export default class TextualView extends React.Component<TextualViewProps, Textu
 							.map((current: string, index: number): JSX.Element => {
 								return this.renderProp((this.props.astNode as any)[current], current, index);
 							})
+							.filter(element => element !== null)
+							.map((element, index: number) => <li key={index}>{ element }</li>)
 					}
 				</ul>
 			</div>

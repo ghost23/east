@@ -95,7 +95,7 @@ export function createSyntaxMapsFromTree(ast: ESTree.Node, filePath: string, pri
 	return syntaxMap;
 }
 
-export function importJavaScript(entryFile: string): { [key:string]: { [key:string]: ESTree.Node } } {
+export function importJavaScript(entryFile: string): { importedFiles: Set<string>, syntaxMap: { [key:string]: { [key:string]: ESTree.Node } } } {
 
 	const listOfFilesToBeParsed: Array<string> = [];
 	listOfFilesToBeParsed.push(entryFile);
@@ -127,5 +127,5 @@ export function importJavaScript(entryFile: string): { [key:string]: { [key:stri
 		}
 	}
 
-	return syntaxMap;
+	return { syntaxMap, importedFiles: setOfFilesAlreadyParsed };
 }

@@ -52,7 +52,7 @@ describe('program ast reducer', () => {
 	beforeEach(() => {
 		initialProgramModel = {
 			importError: null,
-			importedFiles: ['some/path/to/file.js'],
+			importedFiles: new Set(['some/path/to/file.js']),
 			entryFile: 'some/path/to/file.js',
 			astMap: {
 				'Program': {
