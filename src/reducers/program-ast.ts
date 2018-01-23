@@ -199,13 +199,27 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             const newASTSubMap = clone(newASTMap[typeAction.nodeType]);
             const newNode = clone(newASTSubMap[typeAction.uid]);
             const hasPropIndex = typeAction.propIndex !== null && typeAction.propIndex !== undefined;
+            const propIsArray = Array.isArray((newNode as any)[typeAction.propName]);
 
-            if (isNode(typeAction.newValue)) { //TODO: What if the existing prop is a node? what if the existing prop is an array of nodes?
+            if (isNode(typeAction.newValue)) {
                 throw new Error('UPDATE_AST_NODE_PROPERTY newValue must not be a Node');
             } else {
-                if (hasPropIndex) { //TODO: what if the prop is not an array?
-                    ((newNode as any)[typeAction.propName] as Array<any>)[typeAction.propIndex] = typeAction.newValue;
-                } else { //TODO: what if the prop is an array?
+                if(propIsArray) {
+                    if(((newNode as any)[typeAction.propName] as Array<any>).length > 0 && isNode(((newNode as any)[typeAction.propName] as Array<any>)[0])) {
+                        throw new Error('UPDATE_AST_NODE_PROPERTY prop to be updated must not be an Array of nodes');
+                    }
+                    if (hasPropIndex) {
+                        if(typeAction.propIndex < 0 || typeAction.propIndex >= ((newNode as any)[typeAction.propName] as Array<any>).length) {
+                            throw new Error('UPDATE_AST_NODE_PROPERTY propIndex out of range');
+                        }
+                        ((newNode as any)[typeAction.propName] as Array<any>)[typeAction.propIndex] = typeAction.newValue;
+                    } else {
+                        ((newNode as any)[typeAction.propName] as Array<any>).push(typeAction.newValue);
+                    }
+                } else {
+                    if(isNode((newNode as any)[typeAction.propName])) {
+                        throw new Error('UPDATE_AST_NODE_PROPERTY prop to be updated must not be a Node');
+                    }
                     (newNode as any)[typeAction.propName] = typeAction.newValue;
                 }
             }
