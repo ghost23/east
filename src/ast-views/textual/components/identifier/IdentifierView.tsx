@@ -1,6 +1,6 @@
 import React = require('react');
 import * as styles from './IdentifierView.scss';
-import { TextualViewProps } from '../TextualViewController';
+import { TextualViewProps } from '../../TextualViewController';
 import { Identifier } from 'estree';
 
 export default class IdentifierView extends React.Component<TextualViewProps> {

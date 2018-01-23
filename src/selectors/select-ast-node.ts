@@ -21,7 +21,9 @@ export function selectDescendantsByType(state: EastStore, node: ESTree.Node, typ
 	return descendantsByType.map(descendant => selectASTNodeByTypeAndId(state, descendant.type, descendant.uid));
 }
 
-
+export function selectAllFilesList(state: EastStore): string[] {
+	return [...state.programModel.importedFiles];
+}
 
 export function selectEntryFile(state: EastStore): string {
 	return state.programModel.entryFile;

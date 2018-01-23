@@ -25,7 +25,7 @@ export type ASTMap = {
 
 export interface ProgramModel {
     astMap: ASTMap,
-    importedFiles: string[],
+    importedFiles: Set<string>,
     entryFile: string,
     importError: Error
 }
@@ -41,7 +41,7 @@ DEFAULT_AST["Program"]["/"] = {
 
 const DEFAULT_PROGRAM_MODEL: ProgramModel = {
     astMap: DEFAULT_AST,
-    importedFiles: [],
+    importedFiles: new Set<string>(),
     entryFile: "/",
     importError: null
 };
@@ -176,18 +176,16 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
         case IMPORT_JAVASCRIPT_FILE: {
             let programModel: ProgramModel;
             try {
-                let astMap = importJavaScript((action as ImportJavaScriptfileAction).filePath);
+                let importResult = importJavaScript((action as ImportJavaScriptfileAction).filePath);
                 programModel = {
-                    astMap,
-                    importedFiles: state.importedFiles.concat((action as ImportJavaScriptfileAction).filePath),
+                    astMap: importResult.syntaxMap,
+                    importedFiles: new Set<string>([...state.importedFiles, ...importResult.importedFiles]),
                     entryFile: (action as ImportJavaScriptfileAction).filePath,
                     importError: null
                 };
             } catch (e) {
                 programModel = {
-                    astMap: state.astMap,
-                    importedFiles: state.importedFiles,
-                    entryFile: state.entryFile,
+                    ...state,
                     importError: {name: e.name, message: e.message, stack: e.stack}
                 };
             }
@@ -228,10 +226,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             newASTSubMap[typeAction.uid] = newNode;
 
             return {
-                astMap: newASTMap,
-                importedFiles: state.importedFiles,
-                entryFile: state.entryFile,
-                importError: state.importError
+                ...state,
+				astMap: newASTMap
             }
         }
         case SET_AST_SUBTREE: {
@@ -242,10 +238,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             newASTMap = addSubtreeToASTMap(action, newASTMap);
 
             return {
-                astMap: newASTMap,
-                importedFiles: state.importedFiles,
-                entryFile: state.entryFile,
-                importError: state.importError
+				...state,
+				astMap: newASTMap
             }
         }
         case ADD_AST_SUBTREE: {
@@ -255,10 +249,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             newASTMap = addSubtreeToASTMap(action, newASTMap);
 
             return {
-                astMap: newASTMap,
-                importedFiles: state.importedFiles,
-                entryFile: state.entryFile,
-                importError: state.importError
+				...state,
+				astMap: newASTMap
             }
         }
         case REMOVE_AST_SUBTREE: {
@@ -268,10 +260,8 @@ export function programModel(state: ProgramModel = DEFAULT_PROGRAM_MODEL, action
             newASTMap = removeSubtreeFromASTMap(action, newASTMap);
 
             return {
-                astMap: newASTMap,
-                importedFiles: state.importedFiles,
-                entryFile: state.entryFile,
-                importError: state.importError
+				...state,
+				astMap: newASTMap
             }
         }
         default: {

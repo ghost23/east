@@ -2,7 +2,7 @@
  * Created by mail on 08.12.2016.
  */
 
-import { combinePersonNames } from './util';
+import iterate, { combinePersonNames as combNames } from './util';
 
 class Person {
 
@@ -24,10 +24,10 @@ class Person {
 }
 
 function makeIt(nameOne, nameTwo) {
-	return combinePersonNames(nameOne, nameTwo);
+	return combNames(nameOne, nameTwo);
 }
 
 const hans = new Person("Hans");
 const sven = new Person("Sven");
 
-Person.shoutOutName(combinePersonNames(hans, sven));
+Person.shoutOutName(combNames(hans, sven));
