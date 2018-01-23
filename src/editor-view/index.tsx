@@ -3,7 +3,6 @@
  */
 
 import * as electron from 'electron';
-const ipcRenderer = electron.ipcRenderer;
 
 electron.crashReporter.start({
 	productName: "east",
@@ -14,15 +13,17 @@ electron.crashReporter.start({
 
 import React = require('react');
 import ReactDOM = require('react-dom');
-import { combineReducers, createStore, Store } from 'redux';
-import { Provider } from 'react-redux';
-import { importJavaScriptFile } from '../actions/ast-import';
-import { programModel, viewMode, EastStore} from '../reducers/reducers';
+import { AppContainer } from 'react-hot-loader';
 
 import * as styles from './index.scss';
-import EditCanvasController from './edit-canvas';
-import { VIEW_MODES } from '../utils/constants';
+import App from './app';
+import { createStore, Store } from 'redux';
+import { EastStore } from '../reducers/reducers';
+import combinedReducers from '../reducers/reducers';
 import { changeEditView } from '../actions/change-view';
+import { VIEW_MODES } from '../utils/constants';
+import { importJavaScriptFile } from '../actions/ast-import';
+const ipcRenderer = electron.ipcRenderer;
 
 declare global { // To make Redux devtools call work
 	interface Window { __REDUX_DEVTOOLS_EXTENSION__: Function; }
@@ -30,16 +31,29 @@ declare global { // To make Redux devtools call work
 
 const test = styles.empty;
 
-const eastReducers = combineReducers<EastStore>({programModel, viewMode});
-let store: Store<EastStore> = createStore<EastStore>(eastReducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
+let store: Store<EastStore> = createStore<EastStore>(combinedReducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
-ReactDOM.render(
-	<Provider store={store}>
-		<EditCanvasController/>
-	</Provider>,
-	document.getElementById('root')
-);
+if ((module as any).hot) {
+	(module as any).hot.accept('../reducers/reducers', () =>
+		store.replaceReducer(require('../reducers/reducers').default)
+	);
+}
 
+const render = () => {
+	const NextApp = require('./app').default;
+	ReactDOM.render(
+		<AppContainer>
+			<NextApp store={store} />
+		</AppContainer>,
+		document.getElementById('root')
+	);
+};
+
+render();
+
+if((module as any).hot) {
+	(module as any).hot.accept('./app', render);
+}
 
 ipcRenderer.on('request-file-import', (channel: string, filePath: string) => {
 	store.dispatch(importJavaScriptFile(filePath));
@@ -48,4 +62,3 @@ ipcRenderer.on('request-file-import', (channel: string, filePath: string) => {
 ipcRenderer.on('change-view-mode', (channel: string, viewMode: VIEW_MODES) => {
 	store.dispatch(changeEditView(viewMode));
 });
-

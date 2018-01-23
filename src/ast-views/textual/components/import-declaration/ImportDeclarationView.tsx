@@ -22,7 +22,7 @@ export default class ImportDeclarationView extends TextualView<ImportDeclaration
 
 		return (
 			<div className={`default ${this.props.astNode.type} ${styles.block}`}>
-				Import from <span className={styles.source}>{node.source}</span>
+				Import of <span className={styles.source}>{node.source.value}</span>
 				<ul>
 					{
 						Object
