@@ -11,13 +11,9 @@ export default class ProgramView extends TextualView {
 	}
 
 	renderBody(prop: any, propName: string) {
-		const list = prop.map((element: any, c_index: number) => {
-			if(typeof element === 'object' && 'type' in element && 'uid' in element) {
-				return <li key={propName + "_" + c_index}>[{c_index}]: <TextualViewController type={element.type} uid={element.uid} /></li>;
-			} else if(prop !== null && prop !== undefined && prop.toString) {
-				return <li key={propName + "_" + c_index}>{ this.renderInput(element, propName, c_index) }</li>;
-			}
-		});
+		const list = prop.map((element: any, c_index: number) => (
+			<li key={propName + "_" + c_index}><TextualViewController type={element.type} uid={element.uid} /></li>
+		));
 		return (<ul>{list}</ul>);
 	}
 

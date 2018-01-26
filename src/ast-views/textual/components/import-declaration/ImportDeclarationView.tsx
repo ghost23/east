@@ -1,11 +1,13 @@
 import React = require('react');
 import * as styles from './ImportDeclarationView.scss';
-import { TextualViewProps } from '../../TextualViewController';
+import { default as TextualViewController, TextualViewProps } from '../../TextualViewController';
 import TextualView from '../../TextualView';
 import { ImportDeclaration } from 'estree';
+import { NodeReference } from '../../../../utils/constants';
 
 interface ImportDeclarationViewProps extends TextualViewProps {
-	availableFiles: string[]
+	availableFiles: string[],
+	sourceFile: string
 }
 
 export default class ImportDeclarationView extends TextualView<ImportDeclarationViewProps> {
@@ -22,14 +24,16 @@ export default class ImportDeclarationView extends TextualView<ImportDeclaration
 
 		return (
 			<div className={`default ${this.props.astNode.type} ${styles.block}`}>
-				Import of <span className={styles.source}>{node.source.value}</span>
+				Import from <span className={styles.source}>{this.props.sourceFile}</span>
 				<ul>
 					{
-						Object
-						.keys(this.props.astNode)
-						.filter(key => !key.startsWith('__east_'))
-						.map((current: string, index: number): JSX.Element => {
-							return <li key={index}>{ this.renderProp((this.props.astNode as any)[current], current, index) }</li>;
+						node.specifiers
+						.map((specifier: any, index: number): JSX.Element => {
+							return <li key={index} className={styles.specifierItem}>
+								<TextualViewController
+									type={(specifier as NodeReference).type}
+									uid={(specifier as NodeReference).uid} />
+							</li>;
 						})
 					}
 				</ul>

@@ -16,6 +16,7 @@ import ProgramView from './components/program/ProgramView';
 import IdentifierView from './components/identifier/IdentifierView';
 import StatementView from './components/StatementView';
 import ImportDeclarationView from './components/import-declaration/ImportDeclarationView';
+import ImportSpecifierCommonView from './components/import-specifier-common/ImportSpecifierCommonView';
 import { VariableDeclaration } from 'estree';
 import { ClassDeclaration } from 'estree';
 import { FunctionDeclaration } from 'estree';
@@ -28,17 +29,31 @@ export interface TextualViewProps {
 }
 
 const astSelectorMap: Map<string, Function> = new Map([
-	["ImportDeclaration", (state: EastStore) => ({ availableFiles: selectAllFilesList(state) })]
+	[
+		"ImportDeclaration", (state: EastStore, astNode: ESTree.Node) => ({
+			availableFiles: selectAllFilesList(state),
+			sourceFile:
+				(selectASTNodeByTypeAndId(
+						state,
+						(astNode as any).source.type,
+						(astNode as any).source.uid
+					) as ESTree.Literal
+				).value
+		})
+	]
 ]);
 
 function getASTSelector(props: TextualViewProps): Function {
 	return astSelectorMap.has(props.type) ? astSelectorMap.get(props.type) : () => ({});
 }
 
-const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string}) => ({
-	astNode: selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid),
-	...getASTSelector(ownProps)(state)
-});
+const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string}) => {
+	const astNode = selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid);
+	return {
+		astNode,
+		...getASTSelector(ownProps)(state, astNode)
+	};
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>, ownProps: {uid: string, type:string}) => ({
 	onPropChange: (propName: string, index: number, newValue: any) => {
@@ -71,6 +86,9 @@ const astComponentMap: Map<string, React.ComponentClass<TextualViewProps>> = new
 	["VariableDeclaration", StatementView],
 	["ClassDeclaration", StatementView],
 	["ImportDeclaration", ImportDeclarationView],
+	["ImportSpecifier", ImportSpecifierCommonView],
+	["ImportDefaultSpecifier", ImportSpecifierCommonView],
+	["ImportNamespaceSpecifier", ImportSpecifierCommonView],
 ]);
 
 function chooseASTComponent(props: TextualViewProps): JSX.Element {

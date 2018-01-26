@@ -1,10 +1,13 @@
 .block {
-	background-color: rgba(99, 128, 196, 0.3);
-	margin: 10px;
-	padding: 40px 10px 10px 10px;
+	margin: 10px 0;
+	padding: 40px 0 10px 0;
 
 	& ul {
 		list-style-type: none;
+	}
+
+	& > ul {
+		padding: 0;
 	}
 }
 

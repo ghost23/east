@@ -2,7 +2,7 @@ import { EastStore } from '../reducers/reducers';
 import * as ESTree from 'estree';
 
 export function selectASTNodeByTypeAndId(state: EastStore, type:string, uid:string): ESTree.Node {
-	return state.programModel.astMap[type][uid];
+	return !nou(type) && !nou(uid) ? state.programModel.astMap[type][uid] : null;
 }
 
 export function selectNextParentByType(state: EastStore, node: ESTree.Node, type: string): ESTree.Node | null {
@@ -27,4 +27,8 @@ export function selectAllFilesList(state: EastStore): string[] {
 
 export function selectEntryFile(state: EastStore): string {
 	return state.programModel.entryFile;
+}
+
+function nou(thing: any): boolean {
+	return (thing === null || thing === undefined);
 }

@@ -49,13 +49,7 @@ const config = {
 			},
 			{
 				test: /\.scss$/,
-				loader: ExtractTextPlugin.extract({
-					fallback: "style-loader",
-					use: [
-						"typings-for-css-modules-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]",
-						"sass-loader?outputStyle=expanded&sourceMap=true&sourceMapContents=true"
-					]
-				})
+				loader: "style-loader!typings-for-css-modules-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]!sass-loader?outputStyle=expanded&sourceMap=true&sourceMapContents=true"
 			},
 			{
 				test: /\.svg$/,
@@ -72,17 +66,7 @@ const config = {
 	},
 
 	plugins: [
-		// This helps ensure the builds are consistent if source hasn't changed:
-		new webpack.optimize.OccurrenceOrderPlugin(),
-		// Note: this won't work without ExtractTextPlugin.extract(..) in `loaders`.
-		new ExtractTextPlugin("static/css/[name].css"),
 		// Write out stats file to build directory.
-		new StatsWriterPlugin({
-			transform: function(data, opts) {
-				let stats = opts.compiler.getStats().toJson({ chunkModules: true });
-				return JSON.stringify(stats, null, 2);
-			}
-		}),
     new HtmlWebpackPlugin({
       inject: true,
       template: './src/editor-view/index.html'
