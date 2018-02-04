@@ -45,7 +45,7 @@ const config = {
 				loader: ExtractTextPlugin.extract({
 					fallback: "style-loader",
 					use: [
-						"typings-for-css-modules-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]",
+						"css-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]",
 						"sass-loader?outputStyle=expanded&sourceMap=true&sourceMapContents=true"
 					]
 				})

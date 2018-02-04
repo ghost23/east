@@ -1,6 +1,6 @@
 import React = require('react');
 import * as styles from './ImportDeclarationView.scss';
-import { default as TextualViewController, TextualViewProps } from '../../TextualViewController';
+import TextualViewController, { TextualViewProps } from '../../TextualViewController';
 import TextualView from '../../TextualView';
 import { ImportDeclaration } from 'estree';
 import { NodeReference } from '../../../../utils/constants';
@@ -29,10 +29,13 @@ export default class ImportDeclarationView extends TextualView<ImportDeclaration
 					{
 						node.specifiers
 						.map((specifier: any, index: number): JSX.Element => {
+							const props = {
+								type: (specifier as NodeReference).type,
+								uid: (specifier as NodeReference).uid,
+								sourceFile: this.props.sourceFile
+							};
 							return <li key={index} className={styles.specifierItem}>
-								<TextualViewController
-									type={(specifier as NodeReference).type}
-									uid={(specifier as NodeReference).uid} />
+								<TextualViewController {...props} />
 							</li>;
 						})
 					}

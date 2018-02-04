@@ -1,7 +1,5 @@
 const path = require("path");
 const webpack = require("webpack");
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const StatsWriterPlugin = require("webpack-stats-plugin").StatsWriterPlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const config = {
@@ -12,7 +10,7 @@ const config = {
 	devtool: "source-map",
 
   target: 'electron-renderer',
-  entry: { ['editor-view']: ['react-hot-loader/patch', './src/editor-view/index.tsx'] },
+  entry: { ['editor-view']: ['./src/editor-view/index.tsx'] },
 
 	output: {
 		path: path.resolve(__dirname, "../out"),
@@ -45,11 +43,11 @@ const config = {
 			},
 			{
 				test: /\.tsx?$/,
-				loaders: ['react-hot-loader/webpack', 'ts-loader']
+				loaders: ['ts-loader']
 			},
 			{
 				test: /\.scss$/,
-				loader: "style-loader!typings-for-css-modules-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]!sass-loader?outputStyle=expanded&sourceMap=true&sourceMapContents=true"
+				loader: "style-loader!css-loader?modules&namedExport&camelCase&sourceMap&importLoaders=1&localIdentName=[local]_[hash:base64:8]!sass-loader?outputStyle=expanded&sourceMap=true&sourceMapContents=true"
 			},
 			{
 				test: /\.svg$/,

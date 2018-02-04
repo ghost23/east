@@ -10,27 +10,33 @@ import { Dispatch } from 'redux';
 import * as ESTree from 'estree';
 import TextualView from './TextualView';
 import { EastStore } from '../../reducers/reducers';
-import { selectAllFilesList, selectASTNodeByTypeAndId } from '../../selectors/select-ast-node';
+import {
+	selectAllFilesList, selectASTNodeByTypeAndId,
+	selectAvailableImportsFromFile
+} from '../../selectors/select-ast-node';
 import { updateASTNodeProperty } from '../../actions/edit-ast';
 import ProgramView from './components/program/ProgramView';
 import IdentifierView from './components/identifier/IdentifierView';
 import StatementView from './components/StatementView';
 import ImportDeclarationView from './components/import-declaration/ImportDeclarationView';
 import ImportSpecifierCommonView from './components/import-specifier-common/ImportSpecifierCommonView';
-import { VariableDeclaration } from 'estree';
+import { Program, VariableDeclaration } from 'estree';
 import { ClassDeclaration } from 'estree';
 import { FunctionDeclaration } from 'estree';
 
 export interface TextualViewProps {
-	astNode?: ESTree.Node,
-	type: string,
-	uid: string,
-	onPropChange?: (propName: string, index: number, newValue: any) => void
+	astNode?: ESTree.Node;
+	type: string;
+	uid: string;
+	onPropChange?: (propName: string, index: number, newValue: any) => void;
+	[propName: string]: any;
 }
 
-const astSelectorMap: Map<string, Function> = new Map([
+const myTest: TextualViewProps = { type: "sdfsd", uid: "sdfds" };
+
+const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => any>([
 	[
-		"ImportDeclaration", (state: EastStore, astNode: ESTree.Node) => ({
+		"ImportDeclaration", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => ({
 			availableFiles: selectAllFilesList(state),
 			sourceFile:
 				(selectASTNodeByTypeAndId(
@@ -39,6 +45,9 @@ const astSelectorMap: Map<string, Function> = new Map([
 						(astNode as any).source.uid
 					) as ESTree.Literal
 				).value
+		}),
+		"ImportSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => ({
+			availableImports: selectAvailableImportsFromFile(state, selectASTNodeByTypeAndId(state, 'Program', ownProps.sourceFile as string) as Program)
 		})
 	]
 ]);
@@ -51,7 +60,7 @@ const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string})
 	const astNode = selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid);
 	return {
 		astNode,
-		...getASTSelector(ownProps)(state, astNode)
+		...getASTSelector(ownProps)(state, ownProps, astNode)
 	};
 };
 

@@ -1,0 +1,52 @@
+$grid: 4px;
+
+.focusElement {
+  position: relative;
+  display: inline-block;
+  &:focus {
+    outline: 1px solid #ff5831;
+  }
+}
+
+.field {
+  cursor: pointer;
+  vertical-align: top;
+}
+
+.datalayerWrapper {
+  position: absolute;
+  z-index: 1;
+  top: 17px;
+  left: -5px;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  min-width: 200px;
+  border: 1px solid #4b4b4b;
+  background-color: #232129;
+}
+
+.datalayer {
+
+  margin: 0;
+  padding: 0;
+
+  li {
+    list-style-type: none;
+    list-style-position: inherit;
+    padding: 0 4px;
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    overflow: hidden;
+
+    &:hover {
+      background-color: #6d6d6d;
+    }
+  }
+
+  .elementHover {
+    background-color: #6d6d6d;
+  }
+}

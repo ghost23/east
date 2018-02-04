@@ -1,5 +1,16 @@
 import { EastStore } from '../reducers/reducers';
 import * as ESTree from 'estree';
+import {
+	ImportDefaultSpecifier,
+	ImportNamespaceSpecifier,
+	ImportSpecifier,
+	ExportSpecifier,
+	ExportDefaultDeclaration,
+	ExportAllDeclaration, Identifier, Program
+} from 'estree';
+import * as path from 'path';
+import { specifier } from '../ast-views/textual/components/import-specifier-common/ImportSpecifierCommonView.scss';
+import { NodeReference } from '../utils/constants';
 
 export function selectASTNodeByTypeAndId(state: EastStore, type:string, uid:string): ESTree.Node {
 	return !nou(type) && !nou(uid) ? state.programModel.astMap[type][uid] : null;
@@ -27,6 +38,43 @@ export function selectAllFilesList(state: EastStore): string[] {
 
 export function selectEntryFile(state: EastStore): string {
 	return state.programModel.entryFile;
+}
+
+export function selectAvailableImportsFromFile(state: EastStore, program:ESTree.Program): Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> {
+
+	let result: Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> = [];
+	const splitProgramPath = program.__east_uid.split('/');
+	const programFileName = splitProgramPath[splitProgramPath.length-1].replace('.js', '');
+
+	const exportSpecifiers = selectDescendantsByType(state, program, 'ExportSpecifier') as ExportSpecifier[];
+	const hasExportDefault = selectDescendantsByType(state, program, 'ExportDefaultDeclaration').length > 0;
+	const exportAllDeclarations = selectDescendantsByType(state, program, 'ExportAllDeclaration') as ExportAllDeclaration[];
+
+	result = exportSpecifiers.map(specifier => {
+
+		const exportedName = (selectASTNodeByTypeAndId(
+			state,
+			specifier.exported.type,
+			(specifier.exported as any).uid) as Identifier
+		).name;
+
+		return {
+			type: 'ImportSpecifier',
+			local: { type: 'Identifier', name: exportedName },
+			imported: { type: 'Identifier', name: exportedName }
+		} as ImportSpecifier;
+	});
+
+	if(hasExportDefault) {
+		result = result.concat({ type: 'ImportDefaultSpecifier', local: { type: 'Identifier', name: `${programFileName}Default`}});
+	}
+
+	exportAllDeclarations.forEach(declaration => {
+		const pathOfExportSource = path.join(program.__east_uid, declaration.source.value + '.js');
+		result = result.concat(selectAvailableImportsFromFile(state, selectASTNodeByTypeAndId(state, 'Program', pathOfExportSource) as Program));
+	});
+
+	return result;
 }
 
 function nou(thing: any): boolean {

@@ -12,3 +12,5 @@ export default function* iterate(myObj) {
 		if(myObj.hasOwnProperty(elmt) && typeof myObj[elmt] !== "function") yield myObj[elmt];
 	}
 }
+
+export * from './thirdFile';

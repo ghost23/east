@@ -13,7 +13,6 @@ electron.crashReporter.start({
 
 import React = require('react');
 import ReactDOM = require('react-dom');
-import { AppContainer } from 'react-hot-loader';
 
 import * as styles from './index.scss';
 import App from './app';
@@ -42,9 +41,7 @@ if ((module as any).hot) {
 const render = () => {
 	const NextApp = require('./app').default;
 	ReactDOM.render(
-		<AppContainer>
-			<NextApp store={store} />
-		</AppContainer>,
+		<NextApp store={store} />,
 		document.getElementById('root')
 	);
 };
