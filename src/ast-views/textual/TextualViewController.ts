@@ -12,7 +12,7 @@ import TextualView from './TextualView';
 import { EastStore } from '../../reducers/reducers';
 import {
 	selectAllFilesList, selectASTNodeByTypeAndId,
-	selectAvailableImportsFromFile
+	selectAvailableImportsFromFile, selectNextParentByType
 } from '../../selectors/select-ast-node';
 import { updateASTNodeProperty } from '../../actions/edit-ast';
 import ProgramView from './components/program/ProgramView';
@@ -23,6 +23,7 @@ import ImportSpecifierCommonView from './components/import-specifier-common/Impo
 import { Program, VariableDeclaration } from 'estree';
 import { ClassDeclaration } from 'estree';
 import { FunctionDeclaration } from 'estree';
+import * as path from "path";
 
 export interface TextualViewProps {
 	astNode?: ESTree.Node;
@@ -31,8 +32,6 @@ export interface TextualViewProps {
 	onPropChange?: (propName: string, index: number, newValue: any) => void;
 	[propName: string]: any;
 }
-
-const myTest: TextualViewProps = { type: "sdfsd", uid: "sdfds" };
 
 const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => any>([
 	[
@@ -45,10 +44,21 @@ const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewP
 						(astNode as any).source.uid
 					) as ESTree.Literal
 				).value
-		}),
-		"ImportSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => ({
-			availableImports: selectAvailableImportsFromFile(state, selectASTNodeByTypeAndId(state, 'Program', ownProps.sourceFile as string) as Program)
 		})
+	],
+	[
+		"ImportSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
+
+			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
+			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
+			return {
+				availableImports:
+					selectAvailableImportsFromFile(
+						state,
+						selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
+					)
+			};
+		}
 	]
 ]);
 

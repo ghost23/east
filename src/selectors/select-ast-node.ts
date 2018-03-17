@@ -11,6 +11,7 @@ import {
 import * as path from 'path';
 import { specifier } from '../ast-views/textual/components/import-specifier-common/ImportSpecifierCommonView.scss';
 import { NodeReference } from '../utils/constants';
+import { Declaration } from 'postcss';
 
 export function selectASTNodeByTypeAndId(state: EastStore, type:string, uid:string): ESTree.Node {
 	return !nou(type) && !nou(uid) ? state.programModel.astMap[type][uid] : null;
@@ -70,7 +71,8 @@ export function selectAvailableImportsFromFile(state: EastStore, program:ESTree.
 	}
 
 	exportAllDeclarations.forEach(declaration => {
-		const pathOfExportSource = path.join(program.__east_uid, declaration.source.value + '.js');
+		const resolvedDeclaration = selectASTNodeByTypeAndId(state, declaration.source.type, (declaration.source as any).uid) as any;
+		const pathOfExportSource = path.join(path.dirname(program.__east_uid), (resolvedDeclaration as Declaration).value + '.js');
 		result = result.concat(selectAvailableImportsFromFile(state, selectASTNodeByTypeAndId(state, 'Program', pathOfExportSource) as Program));
 	});
 

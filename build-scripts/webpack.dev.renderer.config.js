@@ -12,6 +12,8 @@ const config = {
   target: 'electron-renderer',
   entry: { ['editor-view']: ['./src/editor-view/index.tsx'] },
 
+	mode: "development",
+
 	output: {
 		path: path.resolve(__dirname, "../out"),
 		filename: "static/js/[name].js",
