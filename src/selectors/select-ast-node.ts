@@ -41,7 +41,7 @@ export function selectEntryFile(state: EastStore): string {
 	return state.programModel.entryFile;
 }
 
-export function selectAvailableImportsFromFile(state: EastStore, program:ESTree.Program): Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> {
+export function selectAvailableImportsFromFile(state: EastStore, program:ESTree.Program, visitedFiles: string[] = [], calledViaReExport: boolean = false): Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> {
 
 	let result: Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> = [];
 	const splitProgramPath = program.__east_uid.split('/');
@@ -66,15 +66,27 @@ export function selectAvailableImportsFromFile(state: EastStore, program:ESTree.
 		} as ImportSpecifier;
 	});
 
-	if(hasExportDefault) {
+	if(hasExportDefault && !calledViaReExport) {
 		result = result.concat({ type: 'ImportDefaultSpecifier', local: { type: 'Identifier', name: `${programFileName}Default`}});
 	}
 
 	exportAllDeclarations.forEach(declaration => {
 		const resolvedDeclaration = selectASTNodeByTypeAndId(state, declaration.source.type, (declaration.source as any).uid) as any;
 		const pathOfExportSource = path.join(path.dirname(program.__east_uid), (resolvedDeclaration as Declaration).value + '.js');
-		result = result.concat(selectAvailableImportsFromFile(state, selectASTNodeByTypeAndId(state, 'Program', pathOfExportSource) as Program));
+		if(visitedFiles.indexOf(pathOfExportSource) < 0) {
+			visitedFiles.push(pathOfExportSource);
+			result = result.concat(
+				selectAvailableImportsFromFile(
+					state,
+					selectASTNodeByTypeAndId(state, 'Program', pathOfExportSource) as Program,
+					visitedFiles,
+					true
+				)
+			);
+		}
 	});
+
+
 
 	return result;
 }

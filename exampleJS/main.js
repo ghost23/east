@@ -2,7 +2,7 @@
  * Created by mail on 08.12.2016.
  */
 
-import iterate, { combinePersonNames as combNames } from './util';
+import iterate, { combinePersonNames as combNames, default as watschi } from './util';
 
 class Person {
 

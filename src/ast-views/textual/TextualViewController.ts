@@ -24,6 +24,7 @@ import { Program, VariableDeclaration } from 'estree';
 import { ClassDeclaration } from 'estree';
 import { FunctionDeclaration } from 'estree';
 import * as path from "path";
+import { NodeReference } from '../../utils/constants';
 
 export interface TextualViewProps {
 	astNode?: ESTree.Node;
@@ -51,12 +52,79 @@ const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewP
 
 			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
 			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
+			const availableImports = selectAvailableImportsFromFile(
+				state,
+				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
+			).map(importElement => ({
+				label: importElement.type === "ImportSpecifier" ?
+					importElement.imported.name :
+					importElement.type === "ImportDefaultSpecifier" ?
+						'default' :
+						'*',
+				value: importElement
+			}));
+			const selectedImportSpecifier = astNode as ESTree.ImportSpecifier;
+			const selectedImportSpecifierName = selectASTNodeByTypeAndId(state, "Identifier", (selectedImportSpecifier.imported as any).uid) as ESTree.Identifier;
+			const selectedImportSpecifierIndex = availableImports.findIndex(
+				importElement =>
+					importElement.value.type === selectedImportSpecifier.type &&
+					importElement.value.imported.name === selectedImportSpecifierName.name
+			);
 			return {
-				availableImports:
-					selectAvailableImportsFromFile(
-						state,
-						selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
-					)
+				availableImports,
+				selectedImport: selectedImportSpecifierIndex
+			};
+		}
+	],
+	[
+		"ImportDefaultSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
+
+			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
+			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
+			const availableImports = selectAvailableImportsFromFile(
+				state,
+				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
+			).map(importElement => ({
+				label: importElement.type === "ImportSpecifier" ?
+					importElement.imported.name :
+					importElement.type === "ImportDefaultSpecifier" ?
+						'default' :
+						'*',
+				value: importElement
+			}));
+			const selectedImportSpecifier = astNode as ESTree.ImportDefaultSpecifier;
+			const selectedImportSpecifierIndex = availableImports.findIndex(
+				importElement => importElement.value.type === selectedImportSpecifier.type
+			);
+			return {
+				availableImports,
+				selectedImport: selectedImportSpecifierIndex
+			};
+		}
+	],
+	[
+		"ImportNamespaceSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
+
+			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
+			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
+			const availableImports = selectAvailableImportsFromFile(
+				state,
+				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
+			).map(importElement => ({
+				label: importElement.type === "ImportSpecifier" ?
+					importElement.imported.name :
+					importElement.type === "ImportDefaultSpecifier" ?
+						'default' :
+						'*',
+				value: importElement
+			}));
+			const selectedImportSpecifier = astNode as ESTree.ImportNamespaceSpecifier;
+			const selectedImportSpecifierIndex = availableImports.findIndex(
+				importElement => importElement.value.type === selectedImportSpecifier.type
+			);
+			return {
+				availableImports,
+				selectedImport: selectedImportSpecifierIndex
 			};
 		}
 	]

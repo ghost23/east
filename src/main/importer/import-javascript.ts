@@ -125,6 +125,28 @@ export function importJavaScript(entryFile: string): { importedFiles: Set<string
 				if(!setOfFilesAlreadyParsed.has(absolutePath)) listOfFilesToBeParsed.push(absolutePath);
 			});
 		}
+
+		const exportAllDeclarations: { [key: string]: ESTree.ExportAllDeclaration} = syntaxMap['ExportAllDeclaration'] as { [key: string]: ESTree.ExportAllDeclaration};
+		if(exportAllDeclarations) {
+			Object.keys(exportAllDeclarations).forEach((id: string) => {
+				const exportDeclaration: ESTree.ExportAllDeclaration = exportAllDeclarations[id];
+				const source: ESTree.Literal = syntaxMap['Literal'][(exportDeclaration.source as any).uid] as ESTree.Literal;
+				const absolutePath: string = path.join(filePath, source.value.toString()) + '.js';
+				if(!setOfFilesAlreadyParsed.has(absolutePath)) listOfFilesToBeParsed.push(absolutePath);
+			});
+		}
+
+		const exportNameDeclarations: { [key: string]: ESTree.ExportNamedDeclaration} = syntaxMap['ExportNamedDeclaration'] as { [key: string]: ESTree.ExportNamedDeclaration};
+		if(exportNameDeclarations) {
+			Object.keys(exportNameDeclarations).forEach((id: string) => {
+				const exportNameDeclaration: ESTree.ExportNamedDeclaration = exportNameDeclarations[id];
+				if(exportNameDeclaration.source) {
+					const source: ESTree.Literal = syntaxMap['Literal'][(exportNameDeclaration.source as any).uid] as ESTree.Literal;
+					const absolutePath: string = path.join(filePath, source.value.toString()) + '.js';
+					if(!setOfFilesAlreadyParsed.has(absolutePath)) listOfFilesToBeParsed.push(absolutePath);
+				}
+			});
+		}
 	}
 
 	return { syntaxMap, importedFiles: setOfFilesAlreadyParsed };
