@@ -56,19 +56,17 @@ const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewP
 				state,
 				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
 			).map(importElement => ({
-				label: importElement.type === "ImportSpecifier" ?
-					importElement.imported.name :
-					importElement.type === "ImportDefaultSpecifier" ?
-						'default' :
-						'*',
-				value: importElement
+                label: importElement.type === "ImportSpecifier" ?
+                    importElement.imported.name :
+                    '*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
+                value: importElement
 			}));
 			const selectedImportSpecifier = astNode as ESTree.ImportSpecifier;
 			const selectedImportSpecifierName = selectASTNodeByTypeAndId(state, "Identifier", (selectedImportSpecifier.imported as any).uid) as ESTree.Identifier;
 			const selectedImportSpecifierIndex = availableImports.findIndex(
 				importElement =>
 					importElement.value.type === selectedImportSpecifier.type &&
-					importElement.value.imported.name === selectedImportSpecifierName.name
+					importElement.label === selectedImportSpecifierName.name
 			);
 			return {
 				availableImports,
@@ -87,14 +85,13 @@ const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewP
 			).map(importElement => ({
 				label: importElement.type === "ImportSpecifier" ?
 					importElement.imported.name :
-					importElement.type === "ImportDefaultSpecifier" ?
-						'default' :
-						'*',
+					'*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
 				value: importElement
 			}));
 			const selectedImportSpecifier = astNode as ESTree.ImportDefaultSpecifier;
 			const selectedImportSpecifierIndex = availableImports.findIndex(
-				importElement => importElement.value.type === selectedImportSpecifier.type
+				importElement => importElement.value.type === "ImportSpecifier" && // Because we will only ever show 'default' as a normal ImportSpecifier
+                    importElement.label === "default"
 			);
 			return {
 				availableImports,
@@ -111,12 +108,10 @@ const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewP
 				state,
 				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
 			).map(importElement => ({
-				label: importElement.type === "ImportSpecifier" ?
-					importElement.imported.name :
-					importElement.type === "ImportDefaultSpecifier" ?
-						'default' :
-						'*',
-				value: importElement
+                label: importElement.type === "ImportSpecifier" ?
+                    importElement.imported.name :
+                    '*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
+                value: importElement
 			}));
 			const selectedImportSpecifier = astNode as ESTree.ImportNamespaceSpecifier;
 			const selectedImportSpecifierIndex = availableImports.findIndex(

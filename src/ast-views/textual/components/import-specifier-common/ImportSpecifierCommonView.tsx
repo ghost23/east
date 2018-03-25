@@ -28,20 +28,6 @@ export default class ImportSpecifierCommonView extends React.Component<ImportSpe
 		}
 	}
 
-	getImportProp() {
-		switch(this.props.astNode.type) {
-			case "ImportSpecifier": {
-				return (this.props.astNode as ImportSpecifier).imported;
-			}
-			case "ImportDefaultSpecifier": {
-				return "default";
-			}
-			case "ImportNamespaceSpecifier": {
-				return "*";
-			}
-		}
-	}
-
 	public render(): JSX.Element {
 
 		if(!this.props.astNode) return null;
@@ -51,7 +37,7 @@ export default class ImportSpecifierCommonView extends React.Component<ImportSpe
 		return (
 			<div className={styles.specifier}>
 				<Dropdown initialSelection={this.props.selectedImport} labelValuePairs={this.props.availableImports} />
-				→ <TextualViewController type={(node.local as any).type} uid={(node.local as any).uid} />
+				&nbsp;→ <TextualViewController type={(node.local as any).type} uid={(node.local as any).uid} />
 			</div>
 		);
 	}

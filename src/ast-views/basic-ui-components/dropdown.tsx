@@ -28,7 +28,7 @@ interface DropdownState {
 class Dropdown extends Component<DropdownProps, DropdownState> {
 
 	static defaultProps = {
-		numVisibleRows: 3,
+		numVisibleRows: 5,
 		initialSelection: 0,
 		onChange: () => {}
 	};
