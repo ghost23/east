@@ -139,16 +139,53 @@ export function selectAvailableImportsFromFile(
 
 export function selectDeclarationIdentifiers(state: EastStore, declaration: ESTree.VariableDeclaration | ESTree.FunctionDeclaration | ESTree.ClassDeclaration): ESTree.Identifier[] {
     if(declaration.type === "VariableDeclaration") {
-        return declaration.declarations.map(declaration => {
+        return declaration.declarations.reduce((identifiers, declaration) => {
                 const declarator = selectASTNodeByTypeAndId(state, declaration.type, (declaration as any).uid) as VariableDeclarator;
-                return selectASTNodeByTypeAndId(state, declarator.id.type, (declarator.id as any).uid) as Identifier;
-            }
-        ); // TODO Implement ObjectPattern, ArrayPattern, RestElement, AssignmentPattern
+                const pattern = selectASTNodeByTypeAndId(state, declarator.id.type, (declarator.id as any).uid) as ESTree.Pattern;
+                return identifiers.concat(getIdentifiersInPattern(state, pattern));
+            }, []
+        );
     } else if(declaration.type === "FunctionDeclaration" || declaration.type === "ClassDeclaration") {
         const identifier = selectASTNodeByTypeAndId(state, declaration.id.type, (declaration.id as any).uid) as Identifier;
         return [identifier];
     }
 
+}
+
+export function getIdentifiersInPattern(state: EastStore, pattern: ESTree.Pattern): ESTree.Identifier[] {
+    switch(pattern.type) {
+        case "Identifier": {
+            return [pattern];
+        }
+        case "ArrayPattern": {
+            return pattern.elements.reduce((identifiers, element) => {
+                const pattern = selectASTNodeByTypeAndId(state, element.type, (element as any).uid) as ESTree.Pattern;
+                return identifiers.concat(getIdentifiersInPattern(state, pattern));
+            }, []);
+        }
+        case "RestElement": {
+            const childPattern = selectASTNodeByTypeAndId(
+                state,
+                pattern.argument.type,
+                (pattern.argument as any).uid
+            ) as ESTree.Pattern;
+            return getIdentifiersInPattern(state, childPattern);
+        }
+        case "ObjectPattern": {
+            return pattern.properties.reduce((identifiers, property) => {
+                const resolvedProperty = selectASTNodeByTypeAndId(state, property.type, (property as any).uid) as ESTree.AssignmentProperty | ESTree.RestElement;
+                switch(resolvedProperty.type) {
+                    case "Property": {
+                        const pattern = selectASTNodeByTypeAndId(state, resolvedProperty.value.type, (resolvedProperty.value as any).uid) as ESTree.Pattern;
+                        return identifiers.concat(getIdentifiersInPattern(state, pattern));
+                    }
+                    case "RestElement": {
+                        return identifiers.concat(getIdentifiersInPattern(state, resolvedProperty));
+                    }
+                }
+            }, []);
+        }
+    }
 }
 
 function nou(thing: any): boolean {

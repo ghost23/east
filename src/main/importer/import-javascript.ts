@@ -111,7 +111,7 @@ export function importJavaScript(entryFile: string): { importedFiles: Set<string
 
 		file = listOfFilesToBeParsed.pop();
 		setOfFilesAlreadyParsed.add(file);
-		console.log('now examining:', file);
+		//console.log('now examining:', file);
 		filePath = path.dirname(file);
 		ast = parseJavaScriptFile(loadFile(file), true);
 		syntaxMap = createSyntaxMapsFromTree(ast, file, syntaxMap);
