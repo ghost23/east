@@ -1,12 +1,15 @@
 import React = require('react');
 import * as styles from './ImportSpecifierCommonView.scss';
 import { default as TextualViewController, TextualViewProps } from '../../TextualViewController';
-import { ImportSpecifier, ImportDefaultSpecifier, ImportNamespaceSpecifier } from 'estree';
+import { ImportSpecifier, ImportNamespaceSpecifier } from 'estree';
 import Dropdown from '../../../basic-ui-components/dropdown';
 
 interface ImportSpecifierCommonViewProps extends TextualViewProps {
-	availableImports: Array<{ label: string, value: ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier }>;
+	availableImports: Array<{ label: string, value: ImportSpecifier | ImportNamespaceSpecifier }>;
 	selectedImport: number;
+	specifierIndex: number;
+	sourceFile: string;
+	onChangeSpecifier: (oldSpecifierIndex: number, newNode: ImportSpecifier | ImportNamespaceSpecifier) => void;
 }
 
 /**
@@ -21,11 +24,9 @@ export default class ImportSpecifierCommonView extends React.Component<ImportSpe
 		this.handlePropChange = this.handlePropChange.bind(this);
 	}
 
-	handlePropChange(event: React.SyntheticEvent<HTMLInputElement>) {
-		const newValue = event.currentTarget.value;
-		if(this.props.astNode.type === "ImportSpecifier") {
-			this.props.onPropChange('imported', null, newValue);
-		}
+	handlePropChange(newValue: { label: string, value: ImportSpecifier | ImportNamespaceSpecifier }) {
+
+		this.props.onChangeSpecifier(this.props.specifierIndex, newValue.value);
 	}
 
 	public render(): JSX.Element {
@@ -36,19 +37,15 @@ export default class ImportSpecifierCommonView extends React.Component<ImportSpe
 
 		return (
 			<div className={styles.specifier}>
-				<Dropdown initialSelection={this.props.selectedImport} labelValuePairs={this.props.availableImports} />
-				&nbsp;→ <TextualViewController type={(node.local as any).type} uid={(node.local as any).uid} />
+				<Dropdown
+					initialSelection={this.props.selectedImport}
+					onChange={this.handlePropChange}
+					labelValuePairs={this.props.availableImports}
+				/> → <TextualViewController
+					type={(node.local as any).type}
+					uid={(node.local as any).uid}
+				/>
 			</div>
 		);
 	}
 }
-
-/*
-<ContentEditable
-	html={this.getImportProp() as any}
-	className={styles.primitiveEntry}
-	tagName="span"
-	onChange={ this.handlePropChange }
-	contentEditable="plaintext-only"
-	/>
- */

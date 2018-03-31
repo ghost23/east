@@ -15,7 +15,7 @@ interface DropdownProps {
 	tooltipMode?: boolean;
 	labelValuePairs: Array<{label: string, value: any}>;
 	initialSelection?: number;
-	onChange?: Function;
+	onChange?: (newValue: {label: string, value: any}) => void;
 }
 
 interface DropdownState {

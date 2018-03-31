@@ -1,129 +1,25 @@
 /**
  * Created by mail on 13.12.2016.
  */
-/**
- * Created by mail on 01.11.2016.
- */
 import * as React from 'react';
 import { connect } from 'react-redux'
 import { Dispatch } from 'redux';
 import * as ESTree from 'estree';
 import TextualView from './TextualView';
 import { EastStore } from '../../reducers/reducers';
-import {
-	selectAllFilesList, selectASTNodeByTypeAndId,
-	selectAvailableImportsFromFile, selectNextParentByType
-} from '../../selectors/select-ast-node';
-import { updateASTNodeProperty } from '../../actions/edit-ast';
-import ProgramView from './components/program/ProgramView';
-import IdentifierView from './components/identifier/IdentifierView';
-import StatementView from './components/StatementView';
-import ImportDeclarationView from './components/import-declaration/ImportDeclarationView';
-import ImportSpecifierCommonView from './components/import-specifier-common/ImportSpecifierCommonView';
-import { Program, VariableDeclaration } from 'estree';
-import { ClassDeclaration } from 'estree';
-import { FunctionDeclaration } from 'estree';
-import * as path from "path";
-import { NodeReference } from '../../utils/constants';
+import { selectASTNodeByTypeAndId } from '../../selectors/select-ast-node';
+import { updateASTNodeProperty, setASTSubtree } from '../../actions/edit-ast';
+import astComponentMap from './ast-to-view-map';
+import astSelectorMap from './ast-to-selector-map';
 
 export interface TextualViewProps {
 	astNode?: ESTree.Node;
 	type: string;
 	uid: string;
 	onPropChange?: (propName: string, index: number, newValue: any) => void;
+	onNodePropChange?: (propName: string, index: number, newValue: any) => void;
 	[propName: string]: any;
 }
-
-const astSelectorMap = new Map<string, (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => any>([
-	[
-		"ImportDeclaration", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => ({
-			availableFiles: selectAllFilesList(state),
-			sourceFile:
-				(selectASTNodeByTypeAndId(
-						state,
-						(astNode as any).source.type,
-						(astNode as any).source.uid
-					) as ESTree.Literal
-				).value
-		})
-	],
-	[
-		"ImportSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
-
-			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
-			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
-			const availableImports = selectAvailableImportsFromFile(
-				state,
-				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
-			).map(importElement => ({
-                label: importElement.type === "ImportSpecifier" ?
-                    importElement.imported.name :
-                    '*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
-                value: importElement
-			}));
-			const selectedImportSpecifier = astNode as ESTree.ImportSpecifier;
-			const selectedImportSpecifierName = selectASTNodeByTypeAndId(state, "Identifier", (selectedImportSpecifier.imported as any).uid) as ESTree.Identifier;
-			const selectedImportSpecifierIndex = availableImports.findIndex(
-				importElement =>
-					importElement.value.type === selectedImportSpecifier.type &&
-					importElement.label === selectedImportSpecifierName.name
-			);
-			return {
-				availableImports,
-				selectedImport: selectedImportSpecifierIndex
-			};
-		}
-	],
-	[
-		"ImportDefaultSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
-
-			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
-			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
-			const availableImports = selectAvailableImportsFromFile(
-				state,
-				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
-			).map(importElement => ({
-				label: importElement.type === "ImportSpecifier" ?
-					importElement.imported.name :
-					'*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
-				value: importElement
-			}));
-			const selectedImportSpecifier = astNode as ESTree.ImportDefaultSpecifier;
-			const selectedImportSpecifierIndex = availableImports.findIndex(
-				importElement => importElement.value.type === "ImportSpecifier" && // Because we will only ever show 'default' as a normal ImportSpecifier
-                    importElement.label === "default"
-			);
-			return {
-				availableImports,
-				selectedImport: selectedImportSpecifierIndex
-			};
-		}
-	],
-	[
-		"ImportNamespaceSpecifier", (state: EastStore, ownProps: TextualViewProps, astNode: ESTree.Node) => {
-
-			const filePathOfCurrentProgram = selectNextParentByType(state, astNode, "Program").__east_uid;
-			const absolutePath: string = path.join(path.dirname(filePathOfCurrentProgram), ownProps.sourceFile as string) + '.js';
-			const availableImports = selectAvailableImportsFromFile(
-				state,
-				selectASTNodeByTypeAndId(state, 'Program', absolutePath) as Program
-			).map(importElement => ({
-                label: importElement.type === "ImportSpecifier" ?
-                    importElement.imported.name :
-                    '*', // only thing left is ImportNamespaceSpecifier, we don't produce ImportDefaultSpecifier
-                value: importElement
-			}));
-			const selectedImportSpecifier = astNode as ESTree.ImportNamespaceSpecifier;
-			const selectedImportSpecifierIndex = availableImports.findIndex(
-				importElement => importElement.value.type === selectedImportSpecifier.type
-			);
-			return {
-				availableImports,
-				selectedImport: selectedImportSpecifierIndex
-			};
-		}
-	]
-]);
 
 function getASTSelector(props: TextualViewProps): Function {
 	return astSelectorMap.has(props.type) ? astSelectorMap.get(props.type) : () => ({});
@@ -140,38 +36,11 @@ const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string})
 const mapDispatchToProps = (dispatch: Dispatch<EastStore>, ownProps: {uid: string, type:string}) => ({
 	onPropChange: (propName: string, index: number, newValue: any) => {
 		dispatch(updateASTNodeProperty(newValue, ownProps.type, ownProps.uid, propName as keyof ESTree.Node, index));
+	},
+	onNodePropChange: (propName: string, index: number, newValue: ESTree.Node) => {
+		dispatch(setASTSubtree({nodeType: ownProps.type, uid: ownProps.uid, propName, propIndex: index}, newValue));
 	}
 });
-
-const astComponentMap: Map<string, React.ComponentClass<TextualViewProps>> = new Map([
-	["Program", ProgramView],
-	["Identifier", IdentifierView],
-	["ExpressionStatement", StatementView],
-	["BlockStatement", StatementView],
-	["EmptyStatement", StatementView],
-	["DebuggerStatement", StatementView],
-	["WithStatement", StatementView],
-	["ReturnStatement", StatementView],
-	["LabeledStatement", StatementView],
-	["BreakStatement", StatementView],
-	["ContinueStatement", StatementView],
-	["IfStatement", StatementView],
-	["SwitchStatement", StatementView],
-	["ThrowStatement", StatementView],
-	["TryStatement", StatementView],
-	["WhileStatement", StatementView],
-	["DoWhileStatement", StatementView],
-	["ForStatement", StatementView],
-	["ForInStatement", StatementView],
-	["ForOfStatement", StatementView],
-	["FunctionDeclaration", StatementView],
-	["VariableDeclaration", StatementView],
-	["ClassDeclaration", StatementView],
-	["ImportDeclaration", ImportDeclarationView],
-	["ImportSpecifier", ImportSpecifierCommonView],
-	["ImportDefaultSpecifier", ImportSpecifierCommonView],
-	["ImportNamespaceSpecifier", ImportSpecifierCommonView],
-]);
 
 function chooseASTComponent(props: TextualViewProps): JSX.Element {
 	return React.createElement<TextualViewProps>(

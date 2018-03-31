@@ -2,7 +2,7 @@ import React = require('react');
 import * as styles from './ImportDeclarationView.scss';
 import TextualViewController, { TextualViewProps } from '../../TextualViewController';
 import TextualView from '../../TextualView';
-import { ImportDeclaration } from 'estree';
+import { ImportDeclaration, ImportNamespaceSpecifier, ImportSpecifier } from 'estree';
 import { NodeReference } from '../../../../utils/constants';
 
 interface ImportDeclarationViewProps extends TextualViewProps {
@@ -14,6 +14,12 @@ export default class ImportDeclarationView extends TextualView<ImportDeclaration
 
 	constructor(props: ImportDeclarationViewProps) {
 		super(props);
+
+		this.handleChangeSpecifier = this.handleChangeSpecifier.bind(this);
+	}
+
+	handleChangeSpecifier(oldSpecifierIndex: number, newNode: ImportSpecifier | ImportNamespaceSpecifier) {
+		this.props.onNodePropChange('specifiers', oldSpecifierIndex, newNode);
 	}
 
 	public render(): JSX.Element {
@@ -32,7 +38,9 @@ export default class ImportDeclarationView extends TextualView<ImportDeclaration
 							const props = {
 								type: (specifier as NodeReference).type,
 								uid: (specifier as NodeReference).uid,
-								sourceFile: this.props.sourceFile
+								specifierIndex: index,
+								sourceFile: this.props.sourceFile,
+								onChangeSpecifier: this.handleChangeSpecifier
 							};
 							return <li key={index} className={styles.specifierItem}>
 								<TextualViewController {...props} />
