@@ -6,16 +6,12 @@ import TextualViewController, { TextualViewProps } from './TextualViewController
 export interface TextualViewState {
 }
 
-export default class TextualView<T extends TextualViewProps = TextualViewProps> extends React.Component<T, TextualViewState> {
+export default class TextualView<T extends TextualViewProps = TextualViewProps> extends React.PureComponent<T, TextualViewState> {
 
 	constructor(props: T) {
 		super(props);
 
 		this.handlePropChange = this.handlePropChange.bind(this);
-	}
-
-	shouldComponentUpdate(nextProps: T): boolean {
-		return this.props.type !== nextProps.type || this.props.uid !== nextProps.uid;
 	}
 
 	renderInput(prop: any, propName: string, index?: number): JSX.Element {
