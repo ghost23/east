@@ -12,8 +12,7 @@ export default class IdentifierView extends React.Component<TextualViewProps> {
 		this.handlePropChange = this.handlePropChange.bind(this);
 	}
 
-	handlePropChange(event: React.SyntheticEvent<HTMLInputElement>) {
-		const newValue = event.currentTarget.value;
+	handlePropChange(event: React.SyntheticEvent<HTMLInputElement>, newValue: string) {
 		this.props.onPropChange('name', null, newValue);
 	}
 

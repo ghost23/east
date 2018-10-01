@@ -27,6 +27,7 @@ function getASTSelector(props: TextualViewProps): Function {
 
 const mapStateToProps = (state: EastStore, ownProps: {uid: string, type:string}) => {
 	const astNode = selectASTNodeByTypeAndId(state, ownProps.type, ownProps.uid);
+	if(!astNode) return {};
 	return {
 		astNode,
 		...getASTSelector(ownProps)(state, ownProps, astNode)
