@@ -1,0 +1,65 @@
+@startuml
+
+abstract class LexicalEnvironment {
+	envRecord: EnvironmentRecord
+	outer: LexicalEnvironment
+}
+
+class GlobalEnvironment {
+
+}
+
+class ModuleEnvironment {
+
+}
+
+class FunctionEnvironment {
+
+}
+
+abstract class EnvironmentRecord {
+
+}
+
+class DeclarativeEnvRecord {
+
+}
+
+class FunctionEnvRecord {
+	thisValue
+	thisBindingStatus
+	functionObject
+	homeObject
+	newTarget
+}
+
+class ModuleEnvRecord {
+
+}
+
+class ObjectEnvRecord {
+	bindingObject
+}
+
+class GlobalEnvRecord {
+	objectRecord
+	globalThisValue
+
+}
+
+LexicalEnvironment <|-- GlobalEnvironment
+LexicalEnvironment <|-- ModuleEnvironment
+LexicalEnvironment <|-- FunctionEnvironment
+LexicalEnvironment o-- LexicalEnvironment
+LexicalEnvironment *-- EnvironmentRecord
+EnvironmentRecord <|-- DeclarativeEnvRecord
+DeclarativeEnvRecord <|-- FunctionEnvRecord
+DeclarativeEnvRecord <|-- ModuleEnvRecord
+EnvironmentRecord <|-- ObjectEnvRecord
+EnvironmentRecord <|-- GlobalEnvRecord
+
+ModuleEnvironment *-- ModuleEnvRecord
+GlobalEnvironment *-- GlobalEnvRecord
+FunctionEnvironment *-- FunctionEnvRecord
+
+@enduml
