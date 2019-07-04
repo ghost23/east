@@ -8,7 +8,9 @@
     "build": "rimraf ./out & webpack --config ./build-scripts/webpack.build.config.js",
     "start": "run-p start:*",
     "start:main": "electron .",
-    "start:renderer": "webpack-dev-server --config ./build-scripts/webpack.dev.renderer.config.js"
+    "start:renderer": "webpack-dev-server --config ./build-scripts/webpack.dev.renderer.config.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [
     "ast",
@@ -32,7 +34,8 @@
     "react-simple-contenteditable": "0.0.3",
     "redux": "^3.7.2",
     "shallowequal": "^1.0.2",
-    "uid": "0.0.2"
+    "uid": "0.0.2",
+    "snyk": "^1.191.0"
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.0.2",
@@ -83,5 +86,6 @@
       "jsx",
       "json"
     ]
-  }
+  },
+  "snyk": true
 }
