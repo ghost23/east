@@ -29,6 +29,7 @@ import { VIEW_MODES } from '../utils/constants';
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: any;
 
+
 function createWindow() {
 
 	installExtension(REACT_DEVELOPER_TOOLS)
