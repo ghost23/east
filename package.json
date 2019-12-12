@@ -35,7 +35,7 @@
     "redux": "^3.7.2",
     "shallowequal": "^1.0.2",
     "uid": "0.0.2",
-    "snyk": "^1.191.0"
+    "snyk": "^1.258.2"
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.0.2",
