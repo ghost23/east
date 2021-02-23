@@ -25,7 +25,7 @@
     "@types/shallowequal": "^0.2.1",
     "classnames": "^2.2.5",
     "esprima": "^4.0.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-custom-scrollbars": "^4.2.1",
@@ -35,7 +35,7 @@
     "redux": "^3.7.2",
     "shallowequal": "^1.0.2",
     "uid": "0.0.2",
-    "snyk": "^1.191.0"
+    "snyk": "^1.192.5"
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.0.2",
